@@ -1,0 +1,53 @@
+version: '3.9'
+
+services:
+
+  etcd:
+    container_name: etcd
+    image: bitnami/etcd:latest
+    volumes:
+      - etcd_data:/bitnami/etcd
+    environment:
+      - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
+  
+  
+  apisix:
+    container_name: apisix
+    image: apache/apisix
+    restart: always
+    volumes:
+      - ./apisix-conf.yaml:/usr/local/apisix/conf/config.yaml
+      - ./plugins:/usr/local/apisix/plugins
+    depends_on:
+      - etcd
+    ports:
+      - "9080:9080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+
+  redis:
+    container_name: redis
+    image: redis:latest
+    restart: always
+    volumes:
+      - redis_data:/root/redis
+
+  
+  apisix-dashboard:
+    container_name: apisix-dashboard
+    image: apache/apisix-dashboard
+    volumes:
+      - ./apisix-dashboard-conf.yaml:/usr/local/apisix-dashboard/conf/conf.yaml
+      - ./apisix-dashboard-schema.json:/usr/local/apisix-dashboard/conf/schema.json
+    ports:
+      - 9000:9000
+
+
+volumes:
+  etcd_data:
+    driver: local
+  
+  redis_data:
+    driver: local
