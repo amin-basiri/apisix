@@ -3139,7 +3139,217 @@
         }
     },
     "plugins": {
+        "delete-from-redis": {
+			"priority": 0,
+			"schema": {
+				"$comment": "this is a mark for our injected plugin schema",
+				"properties": {
+					"_meta": {
+						"properties": {
+							"disable": {
+								"type": "boolean"
+							},
+							"error_response": {
+								"oneOf": [
+									{
+										"type": "string"
+									},
+									{
+										"type": "object"
+									}
+								]
+							},
+							"filter": {
+								"description": "filter determines whether the plugin needs to be executed at runtime",
+								"type": "array"
+							},
+							"priority": {
+								"description": "priority of plugins by customized order",
+								"type": "integer"
+							}
+						},
+						"type": "object"
+					},
+					"body": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"body"
+				],
+				"type": "object"
+			},
+			"version": 0.1
+		},
+        "delete-from-redis-batch": {
+			"priority": 0,
+			"schema": {
+				"$comment": "this is a mark for our injected plugin schema",
+				"properties": {
+					"_meta": {
+						"properties": {
+							"disable": {
+								"type": "boolean"
+							},
+							"error_response": {
+								"oneOf": [
+									{
+										"type": "string"
+									},
+									{
+										"type": "object"
+									}
+								]
+							},
+							"filter": {
+								"description": "filter determines whether the plugin needs to be executed at runtime",
+								"type": "array"
+							},
+							"priority": {
+								"description": "priority of plugins by customized order",
+								"type": "integer"
+							}
+						},
+						"type": "object"
+					},
+					"body": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"body"
+				],
+				"type": "object"
+			},
+			"version": 0.1
+		},
+        "delete-from-redis-file": {
+			"priority": 0,
+			"schema": {
+				"$comment": "this is a mark for our injected plugin schema",
+				"properties": {
+					"_meta": {
+						"properties": {
+							"disable": {
+								"type": "boolean"
+							},
+							"error_response": {
+								"oneOf": [
+									{
+										"type": "string"
+									},
+									{
+										"type": "object"
+									}
+								]
+							},
+							"filter": {
+								"description": "filter determines whether the plugin needs to be executed at runtime",
+								"type": "array"
+							},
+							"priority": {
+								"description": "priority of plugins by customized order",
+								"type": "integer"
+							}
+						},
+						"type": "object"
+					},
+					"body": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"body"
+				],
+				"type": "object"
+			},
+			"version": 0.1
+		},
         "add-to-redis": {
+			"priority": 0,
+			"schema": {
+				"$comment": "this is a mark for our injected plugin schema",
+				"properties": {
+					"_meta": {
+						"properties": {
+							"disable": {
+								"type": "boolean"
+							},
+							"error_response": {
+								"oneOf": [
+									{
+										"type": "string"
+									},
+									{
+										"type": "object"
+									}
+								]
+							},
+							"filter": {
+								"description": "filter determines whether the plugin needs to be executed at runtime",
+								"type": "array"
+							},
+							"priority": {
+								"description": "priority of plugins by customized order",
+								"type": "integer"
+							}
+						},
+						"type": "object"
+					},
+					"body": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"body"
+				],
+				"type": "object"
+			},
+			"version": 0.1
+		},
+        "add-to-redis-batch": {
+			"priority": 0,
+			"schema": {
+				"$comment": "this is a mark for our injected plugin schema",
+				"properties": {
+					"_meta": {
+						"properties": {
+							"disable": {
+								"type": "boolean"
+							},
+							"error_response": {
+								"oneOf": [
+									{
+										"type": "string"
+									},
+									{
+										"type": "object"
+									}
+								]
+							},
+							"filter": {
+								"description": "filter determines whether the plugin needs to be executed at runtime",
+								"type": "array"
+							},
+							"priority": {
+								"description": "priority of plugins by customized order",
+								"type": "integer"
+							}
+						},
+						"type": "object"
+					},
+					"body": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"body"
+				],
+				"type": "object"
+			},
+			"version": 0.1
+		},
+        "add-to-redis-file": {
 			"priority": 0,
 			"schema": {
 				"$comment": "this is a mark for our injected plugin schema",

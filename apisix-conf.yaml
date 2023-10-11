@@ -62,7 +62,12 @@ nginx_config:
 
 
 plugins:
+  - delete-from-redis
+  - delete-from-redis-batch
+  - delete-from-redis-file
   - add-to-redis
+  - add-to-redis-batch
+  - add-to-redis-file
   - api-breaker
   - authz-keycloak
   - basic-auth

@@ -4,7 +4,7 @@ local ngx = ngx
 local redis = require "resty.redis"
 
 
-local plugin_name = "add-to-redis"
+local plugin_name = "add-to-redis-batch"
 
 
 local schema = {
@@ -34,8 +34,6 @@ end
 
 function _M.access(conf, ctx)
     local req_body, _ = core.request.get_body(max_body_size, ctx)
-    local i, j = string.find(req_body, '9')
-    local number = string.sub(req_body, i, i+9)
 
     local redis_client, err = redis:new()
 
@@ -46,15 +44,20 @@ function _M.access(conf, ctx)
         return
     end
 
-    local ok, err = redis_client:set(number, 1)
+    redis_client:init_pipeline()
+    for number in string.gmatch(req_body, '([^,]+)') do
+        redis_client:set(number, 1)
+    end
+    
+    local ok, err = redis_client:commit_pipeline()
     if not ok then
-        ngx.say("failed to set number: ", err)
+        core.log.warn("failed to commit to pipeline: ", err)
         return
     end
 
     local ok, err = redis_client:close()
 
-    return 200, number
+    return 200, 'added'
 end
 
 

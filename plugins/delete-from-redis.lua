@@ -4,7 +4,7 @@ local ngx = ngx
 local redis = require "resty.redis"
 
 
-local plugin_name = "add-to-redis"
+local plugin_name = "delete-from-redis"
 
 
 local schema = {
@@ -46,9 +46,9 @@ function _M.access(conf, ctx)
         return
     end
 
-    local ok, err = redis_client:set(number, 1)
+    local ok, err = redis_client:del(number)
     if not ok then
-        ngx.say("failed to set number: ", err)
+        core.log.warn("failed to set number: ", err)
         return
     end
 
