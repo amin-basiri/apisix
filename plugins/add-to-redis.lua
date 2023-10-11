@@ -1,31 +1,28 @@
-local apisix = require("apisix")
 local core = require("apisix.core")
+local plugin = require("apisix.plugin")
+local ngx = ngx
+
 
 local plugin_name = "add-to-redis"
+
 
 local schema = {
     type = "object",
     properties = {
-        i = {type = "number", minimum = 0},
+        body = {
+            description = "body to replace response.",
+            type = "string"
+        },
     },
-    required = {"i"},
+    required = {"body"},
 }
 
--- local metadata_schema = {
---     type = "object",
---     properties = {
---         ikey = {type = "number", minimum = 0},
---         skey = {type = "string"},
---     },
---     required = {"ikey", "skey"},
--- }
 
 local _M = {
-    version = 0.1,
-    priority = 0,
+    version = 0.5,
+    priority = 13,
     name = plugin_name,
     schema = schema,
-    -- metadata_schema = metadata_schema,
 }
 
 
@@ -35,38 +32,31 @@ end
 
 
 function _M.access(conf, ctx)
-    core.log.error("heeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeey")
-    core.log.warn(core.json.encode(ctx, true))
-    return 200, conf.body
+    local req_body, _ = core.request.get_body(max_body_size, ctx)
+    local i, j = string.find(req_body, '9')
+    local number = string.sub(req_body, i, i+9)
+
+    local redis = require "resty.redis"
+    local redis_client, err = redis:new()
+
+    local ok, err = redis_client:connect("redis", 6379)
+
+    if not ok then
+        core.log.warn("failed to connect to redis: ", err)
+        return
+    end
+
+    local ok, err = redis_client:set(number, 1)
+    if not ok then
+        ngx.say("failed to set number: ", err)
+        return
+    end
+
+    core.log.warn(i)
+    core.log.warn(j)
+
+    return
 end
 
-
-function _M.init()
-    core.log.error("shuuuuuuuuuuuuuuuuuuuuuuuuuuuuuut")
-end
-
-function _M.log(conf, ctx)
-    core.log.error("shiiiiiiiiiiiiiiiiiiiiiiiiit")
-end
 
 return _M
-
-
-
--- metadata schema
--- "metadata_schema": {
---     "properties": {
---         "ikey": {
---             "minimum": 0,
---             "type": "number"
---         },
---         "skey": {
---             "type": "string"
---         }
---     },
---     "required": [
---         "ikey",
---         "skey"
---     ],
---     "type": "object"
--- },

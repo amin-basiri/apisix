@@ -23,6 +23,9 @@ apisix:
   control:
     ip: "0.0.0.0"
     port: 9092
+  
+  extra_lua_path: "/usr/local/apisix/plugins/?.lua"
+
 
 deployment:
   admin:
@@ -43,3 +46,65 @@ deployment:
       - "http://etcd:2379"          # multiple etcd address
     prefix: "/apisix"               # apisix configurations prefix
     timeout: 30                     # 30 seconds
+
+  
+nginx_config:                                      
+  error_log: logs/error.log       
+  error_log_level:  warn
+
+
+  http:
+    enable_access_log: true
+    access_log: logs/access.log
+  
+  http_configuration_snippet: |    
+    lua_shared_dict redis_cluster_slot_locks 100k;
+
+
+plugins:
+  - add-to-redis
+  - api-breaker
+  - authz-keycloak
+  - basic-auth
+  - batch-requests
+  - consumer-restriction
+  - cors
+  # - dubbo-proxy
+  - echo
+  # - error-log-logger
+  # - example-plugin
+  - fault-injection
+  - grpc-transcode
+  - hmac-auth
+  - http-logger
+  - ip-restriction
+  - jwt-auth
+  - kafka-logger
+  - key-auth
+  - limit-conn
+  - limit-count
+  - limit-req
+  # - log-rotate
+  # - node-status
+  - openid-connect
+  - prometheus
+  - proxy-cache
+  - proxy-mirror
+  - proxy-rewrite
+  - redirect
+  - referer-restriction
+  - request-id
+  - request-validation
+  - response-rewrite
+  - serverless-post-function
+  - serverless-pre-function
+  # - skywalking
+  - sls-logger
+  - syslog
+  - tcp-logger
+  - udp-logger
+  - uri-blocker
+  - wolf-rbac
+  - zipkin
+  - server-info
+  - traffic-split

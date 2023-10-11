@@ -3170,13 +3170,12 @@
 						},
 						"type": "object"
 					},
-					"i": {
-						"minimum": 0,
-						"type": "number"
+					"body": {
+						"type": "string"
 					}
 				},
 				"required": [
-					"i"
+					"body"
 				],
 				"type": "object"
 			},

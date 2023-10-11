@@ -18,7 +18,7 @@ services:
     restart: always
     volumes:
       - ./apisix-conf.yaml:/usr/local/apisix/conf/config.yaml
-      - ./plugins:/usr/local/apisix/plugins
+      - ./plugins:/usr/local/apisix/plugins/apisix/plugins
     depends_on:
       - etcd
     ports:
