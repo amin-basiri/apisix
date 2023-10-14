@@ -232,6 +232,53 @@ function delete_number_file(req_body)
     return 200, 'Numbers deleted'
 end
 
+ 
+function get_number_file(req_body)
+
+    local redis_client, err = redis:new()
+
+    local ok, err = redis_client:connect(redis_host, redis_port)
+    if not ok then
+        core.log.warn("failed to connect to redis: ", err)
+        return 500, "Redis connection failure"
+    end
+
+    redis_client:init_pipeline()
+
+    local numbers = {}
+    local counter = 1
+
+    for line in string.gmatch(req_body,'[^\r\n]+') do
+        local start_i, start_j = string.find(line, "9")
+        local end_i, end_j = string.find(line, ",")
+
+        if end_i ~= nil and start_i ~= nil then
+            local number = string.sub(line, start_i, end_i - 1)
+
+            redis_client:get(number)
+
+            numbers[counter] = number
+            counter = counter + 1 
+        end
+    end
+    
+    local value, err = redis_client:commit_pipeline()
+    if not value then
+        core.log.warn("failed to commit to pipeline: ", err)
+        return 500, "Get numbers from redis failed"
+    end
+
+    local ok, err = redis_client:close()
+
+    local number_values = {}
+
+    for i=1, counter - 1 do
+        number_values[numbers[i]] = value[i]
+    end
+
+    return 200, cjson.encode(number_values)
+end
+
 
 function _M.access(conf, ctx)
     local query_string = core.request.get_uri_args(ctx)
@@ -263,6 +310,8 @@ function _M.access(conf, ctx)
             return add_number_file(req_body)
         elseif req_method == "DELETE" then
             return delete_number_file(req_body)
+        elseif req_method == "GET" then
+            return get_number_file(req_body)
         else
             return 405, "Method not allowed"
         end

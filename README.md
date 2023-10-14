@@ -76,10 +76,17 @@ curl -i -X PUT "http://127.0.0.1:9080/manage_redis_numbers?type=normal" -H "Host
 ```
 
 
-### Add Number File
+### Set (add, edit) Number File
 
 ```shell
 curl -i -X POST "http://127.0.0.1:9080/manage_redis_numbers?type=file" -H "Host: example.com" -F numbers=@numbers.csv 
+```
+
+
+### Get Number File
+
+```shell
+curl -i -X GET "http://127.0.0.1:9080/manage_redis_numbers?type=file" -H "Host: example.com" -F numbers=@numbers.csv 
 ```
 
 
