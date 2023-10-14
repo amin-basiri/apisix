@@ -1,3 +1,6 @@
+# Separated APIs
+
+
 ### Call Add
 
 ```shell
@@ -39,4 +42,21 @@ curl -i -X POST "http://127.0.0.1:9080/del_number_batch" -H "Host: example.com" 
 
 ```shell
 curl -i -X POST "http://127.0.0.1:9080/del_number_file" -H "Host: example.com" -F numbers=@numbers.csv 
+```
+
+----------------------------------------------------------------------------------
+
+
+# Manage Redis Numbers
+
+### Add One Number
+
+```shell
+curl -i -X POST "http://127.0.0.1:9080/manage_redis_numbers?type=normal" -H "Host: example.com" -d '9011337323'
+```
+
+### Get One Number
+
+```shell
+curl -i -X GET "http://127.0.0.1:9080/manage_redis_numbers?type=normal&number=9011337323" -H "Host: example.com"
 ```
