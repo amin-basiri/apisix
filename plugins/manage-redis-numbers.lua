@@ -27,7 +27,7 @@ function _M.check_schema(conf)
 end
 
 
-function get_number_string(str)
+local function get_number_string(str)
     local i, j = string.find(str, '9')
     local number = string.sub(str, i, i+9)
 
@@ -35,7 +35,7 @@ function get_number_string(str)
 end
 
 
-function add_number(req_body)
+local function add_number(req_body)
     data, err = cjson.decode(req_body)
     if err then
         core.log.warn("Invalid json: ", err)
@@ -70,7 +70,7 @@ function add_number(req_body)
 end
 
 
-function get_number(number)
+local function get_number(number)
     local number = get_number_string(number)
 
     local redis_client, err = redis:new()
@@ -98,7 +98,7 @@ function get_number(number)
 end
 
 
-function delete_number(number)
+local function delete_number(number)
     local number = get_number_string(number)
 
     local redis_client, err = redis:new()
@@ -122,7 +122,7 @@ function delete_number(number)
 end
 
     
-function edit_number(req_body)
+local function edit_number(req_body)
     data, err = cjson.decode(req_body)
     if err then
         core.log.warn("Invalid json: ", err)
@@ -163,7 +163,7 @@ function edit_number(req_body)
 end
 
 
-function add_number_file(req_body)
+local function add_number_file(req_body)
 
     local redis_client, err = redis:new()
 
@@ -202,7 +202,7 @@ function add_number_file(req_body)
 end
 
 
-function delete_number_file(req_body)
+local function delete_number_file(req_body)
 
     local redis_client, err = redis:new()
 
@@ -237,7 +237,7 @@ function delete_number_file(req_body)
 end
 
  
-function get_number_file(req_body)
+local function get_number_file(req_body)
 
     local redis_client, err = redis:new()
 
@@ -288,7 +288,7 @@ function get_number_file(req_body)
 end
 
 
-function set_number_batch(req_body)
+local function set_number_batch(req_body)
     data, err = cjson.decode(req_body)
     if err then
         core.log.warn("Invalid json: ", err)
