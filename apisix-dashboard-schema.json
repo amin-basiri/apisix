@@ -3139,6 +3139,11 @@
         }
     },
     "plugins": {
+        "manage-redis-numbers": {
+			"priority": 0,
+			"schema": {},
+			"version": 0.1
+		},
         "delete-from-redis": {
 			"priority": 0,
 			"schema": {

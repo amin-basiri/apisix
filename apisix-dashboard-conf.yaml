@@ -65,6 +65,7 @@ authentication:
       password: user
 
 plugins:
+  - manage-redis-numbers
   - delete-from-redis
   - delete-from-redis-batch
   - delete-from-redis-file
