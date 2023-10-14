@@ -90,6 +90,10 @@ function get_number(number)
 
     local ok, err = redis_client:close()
 
+    if value == cjson.null then
+        value = "E"
+    end
+
     return 200, value
 end
 
@@ -273,7 +277,11 @@ function get_number_file(req_body)
     local number_values = {}
 
     for i=1, counter - 1 do
-        number_values[numbers[i]] = value[i]
+        if value[i] == cjson.null then
+            number_values[numbers[i]] = "E"
+        else
+            number_values[numbers[i]] = value[i]
+        end
     end
 
     return 200, cjson.encode(number_values)
