@@ -60,3 +60,9 @@ curl -i -X POST "http://127.0.0.1:9080/manage_redis_numbers?type=normal" -H "Hos
 ```shell
 curl -i -X GET "http://127.0.0.1:9080/manage_redis_numbers?type=normal&number=9011337323" -H "Host: example.com"
 ```
+
+### Delete One Number
+
+```shell
+curl -i -X DELETE "http://127.0.0.1:9080/manage_redis_numbers?type=normal&number=9011337323" -H "Host: example.com"
+```

@@ -80,6 +80,31 @@ function get_number(number)
 
     return 200, value
 end
+
+
+function delete_number(number)
+    local number = get_number_string(number)
+
+    local redis_client, err = redis:new()
+
+    local ok, err = redis_client:connect(redis_host, redis_port)
+
+    if not ok then
+        core.log.warn("failed to connect to redis: ", err)
+        return 500, "Redis connection failure"
+    end
+
+    local ok, err = redis_client:del(number)
+    if not ok then
+        core.log.warn("failed to delete number: ", err)
+        return 500, "Delete number to redis failed"
+    end
+
+    local ok, err = redis_client:close()
+
+    return 200, number .. " deleted"
+end
+
     
 
 function _M.access(conf, ctx)
@@ -93,6 +118,12 @@ function _M.access(conf, ctx)
         elseif req_method == "GET" then
             if query_string["number"] then
                 return get_number(query_string["number"])
+            else
+                return 400, "'number' param must be provided"
+            end
+        elseif req_method == "DELETE" then
+            if query_string["number"] then
+                return delete_number(query_string["number"])
             else
                 return 400, "'number' param must be provided"
             end
