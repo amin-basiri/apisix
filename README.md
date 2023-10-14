@@ -109,3 +109,10 @@ curl -i -X POST "http://127.0.0.1:9080/manage_redis_numbers?type=batch" -H "Host
 ```shell
 curl -i -X GET "http://127.0.0.1:9080/manage_redis_numbers?type=batch&numbers=9011337323,9011337324,9011337325" -H "Host: example.com"
 ```
+
+
+### Delete Number Batch
+
+```shell
+curl -i -X DELETE "http://127.0.0.1:9080/manage_redis_numbers?type=batch&numbers=9011337323,9011337324,9011337325" -H "Host: example.com"
+```

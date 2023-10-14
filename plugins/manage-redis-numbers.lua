@@ -366,6 +366,35 @@ local function get_number_batch(numbers)
 end
 
 
+local function delete_number_batch(numbers)
+    
+    local redis_client, err = redis:new()
+
+    local ok, err = redis_client:connect(redis_host, redis_port)
+
+    if not ok then
+        core.log.warn("failed to connect to redis: ", err)
+        return 500, "Redis connection failure"
+    end
+
+    redis_client:init_pipeline()
+
+    for number in string.gmatch(numbers, '([^,]+)') do
+        redis_client:del(number)
+    end
+
+    local ok, err = redis_client:commit_pipeline()
+    if not ok then
+        core.log.warn("failed to commit to pipeline: ", err)
+        return 500, "Delete numbers from redis failed"
+    end
+
+    local ok, err = redis_client:close()
+
+    return 200, "Numbers deleted"
+end
+
+
 function _M.access(conf, ctx)
     local query_string = core.request.get_uri_args(ctx)
     local req_method = ctx.var.request_method
@@ -407,6 +436,12 @@ function _M.access(conf, ctx)
         elseif req_method == "GET" then
             if query_string["numbers"] then
                 return get_number_batch(query_string["numbers"])
+            else
+                return 400, "'numbers' param must be provided"
+            end
+        elseif req_method == "DELETE" then
+            if query_string["numbers"] then
+                return delete_number_batch(query_string["numbers"])
             else
                 return 400, "'numbers' param must be provided"
             end
