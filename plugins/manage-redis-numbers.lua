@@ -36,7 +36,7 @@ end
 
 
 local function add_number(req_body)
-    data, err = cjson.decode(req_body)
+    local data, err = cjson.decode(req_body)
     if err then
         core.log.warn("Invalid json: ", err)
         return 400, "Malformed request"
@@ -123,7 +123,7 @@ end
 
     
 local function edit_number(req_body)
-    data, err = cjson.decode(req_body)
+    local data, err = cjson.decode(req_body)
     if err then
         core.log.warn("Invalid json: ", err)
         return 400, "Malformed request"
@@ -289,7 +289,7 @@ end
 
 
 local function set_number_batch(req_body)
-    data, err = cjson.decode(req_body)
+    local data, err = cjson.decode(req_body)
     if err then
         core.log.warn("Invalid json: ", err)
         return 400, "Malformed request"
@@ -319,6 +319,50 @@ local function set_number_batch(req_body)
     local ok, err = redis_client:close()
 
     return 200, "Numbers updated"
+end
+
+
+local function get_number_batch(numbers)
+    
+    local redis_client, err = redis:new()
+
+    local ok, err = redis_client:connect(redis_host, redis_port)
+
+    if not ok then
+        core.log.warn("failed to connect to redis: ", err)
+        return 500, "Redis connection failure"
+    end
+
+    redis_client:init_pipeline()
+
+    local _numbers = {}
+    local counter = 1
+
+    for number in string.gmatch(numbers, '([^,]+)') do
+        redis_client:get(number)
+        _numbers[counter] = number
+        counter = counter + 1
+    end
+
+    local value, err = redis_client:commit_pipeline()
+    if not value then
+        core.log.warn("failed to commit to pipeline: ", err)
+        return 500, "Get numbers from redis failed"
+    end
+
+    local ok, err = redis_client:close()
+
+    local number_values = {}
+
+    for i=1, counter - 1 do
+        if value[i] == cjson.null then
+            number_values[_numbers[i]] = "E"
+        else
+            number_values[_numbers[i]] = value[i]
+        end
+    end
+
+    return 200, cjson.encode(number_values)
 end
 
 
@@ -360,6 +404,12 @@ function _M.access(conf, ctx)
     elseif query_string["type"] == "batch" then
         if req_method == "POST" then
             return set_number_batch(req_body)
+        elseif req_method == "GET" then
+            if query_string["numbers"] then
+                return get_number_batch(query_string["numbers"])
+            else
+                return 400, "'numbers' param must be provided"
+            end
         else
             return 405, "Method not allowed"
         end
