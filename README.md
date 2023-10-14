@@ -81,3 +81,10 @@ curl -i -X PUT "http://127.0.0.1:9080/manage_redis_numbers?type=normal" -H "Host
 ```shell
 curl -i -X POST "http://127.0.0.1:9080/manage_redis_numbers?type=file" -H "Host: example.com" -F numbers=@numbers.csv 
 ```
+
+
+### Delete Number File
+
+```shell
+curl -i -X DELETE "http://127.0.0.1:9080/manage_redis_numbers?type=file" -H "Host: example.com" -F numbers=@numbers.csv 
+```

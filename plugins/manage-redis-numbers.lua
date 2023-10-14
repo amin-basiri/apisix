@@ -163,7 +163,7 @@ function add_number_file(req_body)
 
     local redis_client, err = redis:new()
 
-    local ok, err = redis_client:connect("redis", 6379)
+    local ok, err = redis_client:connect(redis_host, redis_port)
     if not ok then
         core.log.warn("failed to connect to redis: ", err)
         return 500, "Redis connection failure"
@@ -189,12 +189,47 @@ function add_number_file(req_body)
     local ok, err = redis_client:commit_pipeline()
     if not ok then
         core.log.warn("failed to commit to pipeline: ", err)
-        return 500, "Add numbers in redis failed"
+        return 500, "Add numbers to redis failed"
     end
 
     local ok, err = redis_client:close()
 
     return 200, 'Numbers added'
+end
+
+
+function delete_number_file(req_body)
+
+    local redis_client, err = redis:new()
+
+    local ok, err = redis_client:connect(redis_host, redis_port)
+    if not ok then
+        core.log.warn("failed to connect to redis: ", err)
+        return 500, "Redis connection failure"
+    end
+
+    redis_client:init_pipeline()
+
+    for line in string.gmatch(req_body,'[^\r\n]+') do
+        local start_i, start_j = string.find(line, "9")
+        local end_i, end_j = string.find(line, ",")
+
+        if end_i ~= nil and start_i ~= nil then
+            local number = string.sub(line, start_i, end_i - 1)
+
+            redis_client:del(number)
+        end
+    end
+    
+    local ok, err = redis_client:commit_pipeline()
+    if not ok then
+        core.log.warn("failed to commit to pipeline: ", err)
+        return 500, "Delete numbers from redis failed"
+    end
+
+    local ok, err = redis_client:close()
+
+    return 200, 'Numbers deleted'
 end
 
 
@@ -226,6 +261,8 @@ function _M.access(conf, ctx)
     elseif query_string["type"] == "file" then
         if req_method == "POST" then
             return add_number_file(req_body)
+        elseif req_method == "DELETE" then
+            return delete_number_file(req_body)
         else
             return 405, "Method not allowed"
         end
