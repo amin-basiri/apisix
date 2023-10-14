@@ -39,12 +39,12 @@ local function add_number(req_body)
     local data, err = cjson.decode(req_body)
     if err then
         core.log.warn("Invalid json: ", err)
-        return 400, "Malformed request"
+        return 400, {msg="Malformed request"}
     end
 
     if not data["number"] then
         core.log.warn("'number' param must be provided")
-        return 400, "'number' param must be provided"
+        return 400, {msg="'number' param must be provided"}
     end
 
     local number = get_number_string(data["number"])
@@ -55,37 +55,44 @@ local function add_number(req_body)
 
     if not ok then
         core.log.warn("failed to connect to redis: ", err)
-        return 500, "Redis connection failure"
+        return 500, {msg="Redis connection failed"}
     end
 
     local ok, err = redis_client:set(number, "H")
     if not ok then
         core.log.warn("failed to set number: ", err)
-        return 500, "Set number to redis failed"
+        return 500, {msg="Set number to redis failed"}
     end
 
     local ok, err = redis_client:close()
 
-    return 200, number .. " added"
+    return 200, {msg=number .. " added"}
 end
 
 
-local function get_number(number)
-    local number = get_number_string(number)
+local function get_number(query_string)
+    local number
+
+    if query_string["number"] then
+        number = query_string["number"]
+    else
+        return 400, {msg="'number' param must be provided"}
+    end
+
+    number = get_number_string(number)
 
     local redis_client, err = redis:new()
 
     local ok, err = redis_client:connect(redis_host, redis_port)
-
     if not ok then
         core.log.warn("failed to connect to redis: ", err)
-        return 500, "Redis connection failure"
+        return 500, {msg="Redis connection failed"}
     end
 
     local value, err = redis_client:get(number)
     if not value then
         core.log.warn("failed to get number: ", err)
-        return 500, "Get number to redis failed"
+        return 500, {msg="Get number from redis failed"}
     end
 
     local ok, err = redis_client:close()
@@ -94,12 +101,20 @@ local function get_number(number)
         value = "E"
     end
 
-    return 200, value
+    return 200, {[number]=value}
 end
 
 
-local function delete_number(number)
-    local number = get_number_string(number)
+local function delete_number(query_string)
+    local number
+
+    if query_string["number"] then
+        number = query_string["number"]
+    else
+        return 400, {msg="'number' param must be provided"}
+    end
+
+    number = get_number_string(number)
 
     local redis_client, err = redis:new()
 
@@ -107,18 +122,18 @@ local function delete_number(number)
 
     if not ok then
         core.log.warn("failed to connect to redis: ", err)
-        return 500, "Redis connection failure"
+        return 500, {msg="Redis connection failed"}
     end
 
     local ok, err = redis_client:del(number)
     if not ok then
         core.log.warn("failed to delete number: ", err)
-        return 500, "Delete number to redis failed"
+        return 500, {msg="Delete number from redis failed"}
     end
 
     local ok, err = redis_client:close()
 
-    return 200, number .. " deleted"
+    return 200, {msg=number .. " deleted"}
 end
 
     
@@ -126,17 +141,17 @@ local function edit_number(req_body)
     local data, err = cjson.decode(req_body)
     if err then
         core.log.warn("Invalid json: ", err)
-        return 400, "Malformed request"
+        return 400, {msg="Malformed request"}
     end
 
     if not data["number"] then
         core.log.warn("'number' param must be provided")
-        return 400, "'number' param must be provided"
+        return 400, {msg="'number' param must be provided"}
     end
 
     if not data["to"] then
         core.log.warn("'to' param must be provided")
-        return 400, "'to' param must be provided"
+        return 400, {msg="'to' param must be provided"}
     end
 
     local number = get_number_string(data["number"])
@@ -148,29 +163,29 @@ local function edit_number(req_body)
 
     if not ok then
         core.log.warn("failed to connect to redis: ", err)
-        return 500, "Redis connection failure"
+        return 500, {msg="Redis connection failed"}
     end
 
     local ok, err = redis_client:set(number, to_value)
     if not ok then
         core.log.warn("failed to edit number: ", err)
-        return 500, "Edit number in redis failed"
+        return 500, {msg="Edit number in redis failed"}
     end
 
     local ok, err = redis_client:close()
 
-    return 200, number .. " updated"
+    return 200, {msg=number .. " updated"}
 end
 
 
-local function add_number_file(req_body)
+local function set_number_file(req_body)
 
     local redis_client, err = redis:new()
 
     local ok, err = redis_client:connect(redis_host, redis_port)
     if not ok then
         core.log.warn("failed to connect to redis: ", err)
-        return 500, "Redis connection failure"
+        return 500, {msg="Redis connection failed"}
     end
 
     redis_client:init_pipeline()
@@ -193,12 +208,12 @@ local function add_number_file(req_body)
     local ok, err = redis_client:commit_pipeline()
     if not ok then
         core.log.warn("failed to commit to pipeline: ", err)
-        return 500, "Add numbers to redis failed"
+        return 500, {msg="Add numbers to redis failed"}
     end
 
     local ok, err = redis_client:close()
 
-    return 200, 'Numbers added'
+    return 200, {msg='Numbers added'}
 end
 
 
@@ -209,7 +224,7 @@ local function delete_number_file(req_body)
     local ok, err = redis_client:connect(redis_host, redis_port)
     if not ok then
         core.log.warn("failed to connect to redis: ", err)
-        return 500, "Redis connection failure"
+        return 500, {msg="Redis connection failed"}
     end
 
     redis_client:init_pipeline()
@@ -228,12 +243,12 @@ local function delete_number_file(req_body)
     local ok, err = redis_client:commit_pipeline()
     if not ok then
         core.log.warn("failed to commit to pipeline: ", err)
-        return 500, "Delete numbers from redis failed"
+        return 500, {msg="Delete numbers from redis failed"}
     end
 
     local ok, err = redis_client:close()
 
-    return 200, 'Numbers deleted'
+    return 200, {msg='Numbers deleted'}
 end
 
  
@@ -244,7 +259,7 @@ local function get_number_file(req_body)
     local ok, err = redis_client:connect(redis_host, redis_port)
     if not ok then
         core.log.warn("failed to connect to redis: ", err)
-        return 500, "Redis connection failure"
+        return 500, {msg="Redis connection failed"}
     end
 
     redis_client:init_pipeline()
@@ -269,7 +284,7 @@ local function get_number_file(req_body)
     local value, err = redis_client:commit_pipeline()
     if not value then
         core.log.warn("failed to commit to pipeline: ", err)
-        return 500, "Get numbers from redis failed"
+        return 500, {msg="Get numbers from redis failed"}
     end
 
     local ok, err = redis_client:close()
@@ -292,7 +307,7 @@ local function set_number_batch(req_body)
     local data, err = cjson.decode(req_body)
     if err then
         core.log.warn("Invalid json: ", err)
-        return 400, "Malformed request"
+        return 400, {msg="Malformed request"}
     end
     
     local redis_client, err = redis:new()
@@ -301,7 +316,7 @@ local function set_number_batch(req_body)
 
     if not ok then
         core.log.warn("failed to connect to redis: ", err)
-        return 500, "Redis connection failure"
+        return 500, {msg="Redis connection failed"}
     end
 
     redis_client:init_pipeline()
@@ -313,24 +328,30 @@ local function set_number_batch(req_body)
     local ok, err = redis_client:commit_pipeline()
     if not ok then
         core.log.warn("failed to commit to pipeline: ", err)
-        return 500, "Set numbers to redis failed"
+        return 500, {msg="Set numbers to redis failed"}
     end
 
     local ok, err = redis_client:close()
 
-    return 200, "Numbers updated"
+    return 200, {msg="Numbers updated"}
 end
 
 
-local function get_number_batch(numbers)
+local function get_number_batch(query_string)
+    local numbers
+
+    if query_string["numbers"] then
+        numbers = query_string["numbers"]
+    else
+        return 400, {msg="'numbers' param must be provided"}
+    end
     
     local redis_client, err = redis:new()
 
     local ok, err = redis_client:connect(redis_host, redis_port)
-
     if not ok then
         core.log.warn("failed to connect to redis: ", err)
-        return 500, "Redis connection failure"
+        return 500, {msg="Redis connection failed"}
     end
 
     redis_client:init_pipeline()
@@ -339,6 +360,8 @@ local function get_number_batch(numbers)
     local counter = 1
 
     for number in string.gmatch(numbers, '([^,]+)') do
+        number = number:gsub("%s+", "")
+        number = string.gsub(number, "%s+", "")
         redis_client:get(number)
         _numbers[counter] = number
         counter = counter + 1
@@ -347,7 +370,7 @@ local function get_number_batch(numbers)
     local value, err = redis_client:commit_pipeline()
     if not value then
         core.log.warn("failed to commit to pipeline: ", err)
-        return 500, "Get numbers from redis failed"
+        return 500, {msg="Get numbers from redis failed"}
     end
 
     local ok, err = redis_client:close()
@@ -366,7 +389,14 @@ local function get_number_batch(numbers)
 end
 
 
-local function delete_number_batch(numbers)
+local function delete_number_batch(query_string)
+    local numbers
+
+    if query_string["numbers"] then
+        numbers = query_string["numbers"]
+    else
+        return 400, {msg="'numbers' param must be provided"}
+    end
     
     local redis_client, err = redis:new()
 
@@ -374,7 +404,7 @@ local function delete_number_batch(numbers)
 
     if not ok then
         core.log.warn("failed to connect to redis: ", err)
-        return 500, "Redis connection failure"
+        return 500, {msg="Redis connection failed"}
     end
 
     redis_client:init_pipeline()
@@ -386,12 +416,12 @@ local function delete_number_batch(numbers)
     local ok, err = redis_client:commit_pipeline()
     if not ok then
         core.log.warn("failed to commit to pipeline: ", err)
-        return 500, "Delete numbers from redis failed"
+        return 500, {msg="Delete numbers from redis failed"}
     end
 
     local ok, err = redis_client:close()
 
-    return 200, "Numbers deleted"
+    return 200, {msg="Numbers deleted"}
 end
 
 
@@ -400,59 +430,45 @@ function _M.access(conf, ctx)
     local req_method = ctx.var.request_method
     local req_body, _ = core.request.get_body(max_body_size, ctx)
 
+    core.response.set_header("Content-Type", "application/json")
+
     if query_string["type"] == "normal" then
         if req_method == "POST" then
             return add_number(req_body)
         elseif req_method == "GET" then
-            if query_string["number"] then
-                return get_number(query_string["number"])
-            else
-                return 400, "'number' param must be provided"
-            end
+            return get_number(query_string)
         elseif req_method == "DELETE" then
-            if query_string["number"] then
-                return delete_number(query_string["number"])
-            else
-                return 400, "'number' param must be provided"
-            end
+            return delete_number(query_string)
         elseif req_method == "PUT" then
             return edit_number(req_body)
         else
-            return 405, "Method not allowed"
+            return 405, {msg="Method not allowed"}
         end
     elseif query_string["type"] == "file" then
         if req_method == "POST" then
-            return add_number_file(req_body)
+            return set_number_file(req_body)
         elseif req_method == "DELETE" then
             return delete_number_file(req_body)
         elseif req_method == "GET" then
             return get_number_file(req_body)
         else
-            return 405, "Method not allowed"
+            return 405, {msg="Method not allowed"}
         end
     elseif query_string["type"] == "batch" then
         if req_method == "POST" then
             return set_number_batch(req_body)
         elseif req_method == "GET" then
-            if query_string["numbers"] then
-                return get_number_batch(query_string["numbers"])
-            else
-                return 400, "'numbers' param must be provided"
-            end
+            return get_number_batch(query_string)
         elseif req_method == "DELETE" then
-            if query_string["numbers"] then
-                return delete_number_batch(query_string["numbers"])
-            else
-                return 400, "'numbers' param must be provided"
-            end
+            return delete_number_batch(query_string)
         else
-            return 405, "Method not allowed"
+            return 405, {msg="Method not allowed"}
         end
     else
-        return 400, "'type' param must be provided"
+        return 400, {msg="'type' param must be provided"}
     end
 
-    return 200, nil
+    return 200, {}
 end
 
 
