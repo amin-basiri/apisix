@@ -1,6 +1,7 @@
 local core = require("apisix.core")
 local plugin = require("apisix.plugin")
 local ngx = ngx
+local cjson = require("cjson.safe")
 local redis = require "resty.redis"
 
 
@@ -35,7 +36,18 @@ end
 
 
 function add_number(req_body)
-    local number = get_number_string(req_body)
+    data, err = cjson.decode(req_body)
+    if err then
+        core.log.warn("Invalid json: ", err)
+        return 400, "Malformed request"
+    end
+
+    if not data["number"] then
+        core.log.warn("'number' param must be provided")
+        return 400, "'number' param must be provided"
+    end
+
+    local number = get_number_string(data["number"])
     
     local redis_client, err = redis:new()
 
@@ -106,6 +118,46 @@ function delete_number(number)
 end
 
     
+function edit_number(req_body)
+    data, err = cjson.decode(req_body)
+    if err then
+        core.log.warn("Invalid json: ", err)
+        return 400, "Malformed request"
+    end
+
+    if not data["number"] then
+        core.log.warn("'number' param must be provided")
+        return 400, "'number' param must be provided"
+    end
+
+    if not data["to"] then
+        core.log.warn("'to' param must be provided")
+        return 400, "'to' param must be provided"
+    end
+
+    local number = get_number_string(data["number"])
+    local to_value = data["to"]
+    
+    local redis_client, err = redis:new()
+
+    local ok, err = redis_client:connect(redis_host, redis_port)
+
+    if not ok then
+        core.log.warn("failed to connect to redis: ", err)
+        return 500, "Redis connection failure"
+    end
+
+    local ok, err = redis_client:set(number, to_value)
+    if not ok then
+        core.log.warn("failed to edit number: ", err)
+        return 500, "Edit number in redis failed"
+    end
+
+    local ok, err = redis_client:close()
+
+    return 200, number .. " updated"
+end
+
 
 function _M.access(conf, ctx)
     local query_string = core.request.get_uri_args(ctx)
@@ -127,6 +179,8 @@ function _M.access(conf, ctx)
             else
                 return 400, "'number' param must be provided"
             end
+        elseif req_method == "PUT" then
+            return edit_number(req_body)
         else
             return 405, "Method not allowed"
         end
