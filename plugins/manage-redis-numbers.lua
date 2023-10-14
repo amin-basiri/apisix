@@ -159,6 +159,45 @@ function edit_number(req_body)
 end
 
 
+function add_number_file(req_body)
+
+    local redis_client, err = redis:new()
+
+    local ok, err = redis_client:connect("redis", 6379)
+    if not ok then
+        core.log.warn("failed to connect to redis: ", err)
+        return 500, "Redis connection failure"
+    end
+
+    redis_client:init_pipeline()
+
+    for line in string.gmatch(req_body,'[^\r\n]+') do
+        local start_i, start_j = string.find(line, "9")
+        local end_i, end_j = string.find(line, ",")
+
+        if end_i ~= nil and start_i ~= nil then
+            local value = string.sub(line, end_i + 1)
+            value = value:gsub("%s+", "")
+            value = string.gsub(value, "%s+", "")
+
+            local number = string.sub(line, start_i, end_i - 1)
+
+            redis_client:set(number, value)
+        end
+    end
+    
+    local ok, err = redis_client:commit_pipeline()
+    if not ok then
+        core.log.warn("failed to commit to pipeline: ", err)
+        return 500, "Add numbers in redis failed"
+    end
+
+    local ok, err = redis_client:close()
+
+    return 200, 'Numbers added'
+end
+
+
 function _M.access(conf, ctx)
     local query_string = core.request.get_uri_args(ctx)
     local req_method = ctx.var.request_method
@@ -181,6 +220,12 @@ function _M.access(conf, ctx)
             end
         elseif req_method == "PUT" then
             return edit_number(req_body)
+        else
+            return 405, "Method not allowed"
+        end
+    elseif query_string["type"] == "file" then
+        if req_method == "POST" then
+            return add_number_file(req_body)
         else
             return 405, "Method not allowed"
         end

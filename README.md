@@ -61,14 +61,23 @@ curl -i -X POST "http://127.0.0.1:9080/manage_redis_numbers?type=normal" -H "Hos
 curl -i -X GET "http://127.0.0.1:9080/manage_redis_numbers?type=normal&number=9011337323" -H "Host: example.com"
 ```
 
+
 ### Delete One Number
 
 ```shell
 curl -i -X DELETE "http://127.0.0.1:9080/manage_redis_numbers?type=normal&number=9011337323" -H "Host: example.com"
 ```
 
+
 ### Edit One Number
 
 ```shell
 curl -i -X PUT "http://127.0.0.1:9080/manage_redis_numbers?type=normal" -H "Host: example.com" -H 'Content-Type: application/json' -d '{"number": "9011337323", "to": "E"}'
+```
+
+
+### Add Number File
+
+```shell
+curl -i -X POST "http://127.0.0.1:9080/manage_redis_numbers?type=file" -H "Host: example.com" -F numbers=@numbers.csv 
 ```
