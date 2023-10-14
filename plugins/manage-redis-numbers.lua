@@ -288,6 +288,40 @@ function get_number_file(req_body)
 end
 
 
+function set_number_batch(req_body)
+    data, err = cjson.decode(req_body)
+    if err then
+        core.log.warn("Invalid json: ", err)
+        return 400, "Malformed request"
+    end
+    
+    local redis_client, err = redis:new()
+
+    local ok, err = redis_client:connect(redis_host, redis_port)
+
+    if not ok then
+        core.log.warn("failed to connect to redis: ", err)
+        return 500, "Redis connection failure"
+    end
+
+    redis_client:init_pipeline()
+
+    for k, v in pairs(data) do
+        redis_client:set(k, v)
+    end
+
+    local ok, err = redis_client:commit_pipeline()
+    if not ok then
+        core.log.warn("failed to commit to pipeline: ", err)
+        return 500, "Set numbers to redis failed"
+    end
+
+    local ok, err = redis_client:close()
+
+    return 200, "Numbers updated"
+end
+
+
 function _M.access(conf, ctx)
     local query_string = core.request.get_uri_args(ctx)
     local req_method = ctx.var.request_method
@@ -320,6 +354,12 @@ function _M.access(conf, ctx)
             return delete_number_file(req_body)
         elseif req_method == "GET" then
             return get_number_file(req_body)
+        else
+            return 405, "Method not allowed"
+        end
+    elseif query_string["type"] == "batch" then
+        if req_method == "POST" then
+            return set_number_batch(req_body)
         else
             return 405, "Method not allowed"
         end
