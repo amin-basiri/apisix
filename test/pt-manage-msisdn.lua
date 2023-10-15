@@ -1,26 +1,30 @@
 local core = require("apisix.core")
 local plugin = require("apisix.plugin")
-local ngx = ngx
 local cjson = require("cjson.safe")
-local redis = require "resty.redis"
+local redis = require "resty.rediscluster"
+
+red_c = nil
 
 
-local plugin_name = "manage-redis-numbers"
+local schema = {
+    type = "object",
+    properties = {
+        body = {
+            description = "plugin parameters",
+            type = "table"
+        },
+    },
+    required = {"body"},
+}
 
-
-local schema = {}
-
+local plugin_name = "pt-manage-msisdn"
 
 local _M = {
     version = 0.5,
-    priority = 13,
+    priority = 14,
     name = plugin_name,
     schema = schema,
 }
-
-local redis_host = "redis"
-local redis_port = 6379
-
 
 function _M.check_schema(conf)
     return core.schema.check(schema, conf)
@@ -49,22 +53,11 @@ local function add_number(req_body)
 
     local number = get_number_string(data["number"])
     
-    local redis_client, err = redis:new()
-
-    local ok, err = redis_client:connect(redis_host, redis_port)
-
-    if not ok then
-        core.log.warn("failed to connect to redis: ", err)
-        return 500, {msg="Redis connection failed"}
-    end
-
-    local ok, err = redis_client:set(number, "H")
+    local ok, err = red_c:set("ESB_" .. number, "H")
     if not ok then
         core.log.warn("failed to set number: ", err)
         return 500, {msg="Set number to redis failed"}
     end
-
-    local ok, err = redis_client:close()
 
     return 200, {msg=number .. " added"}
 end
@@ -81,21 +74,11 @@ local function get_number(query_string)
 
     number = get_number_string(number)
 
-    local redis_client, err = redis:new()
-
-    local ok, err = redis_client:connect(redis_host, redis_port)
-    if not ok then
-        core.log.warn("failed to connect to redis: ", err)
-        return 500, {msg="Redis connection failed"}
-    end
-
-    local value, err = redis_client:get(number)
+    local value, err = red_c:get("ESB_" .. number)
     if not value then
         core.log.warn("failed to get number: ", err)
         return 500, {msg="Get number from redis failed"}
     end
-
-    local ok, err = redis_client:close()
 
     if value == cjson.null then
         value = "E"
@@ -116,22 +99,11 @@ local function delete_number(query_string)
 
     number = get_number_string(number)
 
-    local redis_client, err = redis:new()
-
-    local ok, err = redis_client:connect(redis_host, redis_port)
-
-    if not ok then
-        core.log.warn("failed to connect to redis: ", err)
-        return 500, {msg="Redis connection failed"}
-    end
-
-    local ok, err = redis_client:del(number)
+    local ok, err = red_c:del(number)
     if not ok then
         core.log.warn("failed to delete number: ", err)
         return 500, {msg="Delete number from redis failed"}
     end
-
-    local ok, err = redis_client:close()
 
     return 200, {msg=number .. " deleted"}
 end
@@ -157,22 +129,11 @@ local function edit_number(req_body)
     local number = get_number_string(data["number"])
     local to_value = data["to"]
     
-    local redis_client, err = redis:new()
-
-    local ok, err = redis_client:connect(redis_host, redis_port)
-
-    if not ok then
-        core.log.warn("failed to connect to redis: ", err)
-        return 500, {msg="Redis connection failed"}
-    end
-
-    local ok, err = redis_client:set(number, to_value)
+    local ok, err = red_c:set("ESB_" .. number, to_value)
     if not ok then
         core.log.warn("failed to edit number: ", err)
         return 500, {msg="Edit number in redis failed"}
     end
-
-    local ok, err = redis_client:close()
 
     return 200, {msg=number .. " updated"}
 end
@@ -180,15 +141,7 @@ end
 
 local function set_number_file(req_body)
 
-    local redis_client, err = redis:new()
-
-    local ok, err = redis_client:connect(redis_host, redis_port)
-    if not ok then
-        core.log.warn("failed to connect to redis: ", err)
-        return 500, {msg="Redis connection failed"}
-    end
-
-    redis_client:init_pipeline()
+    red_c:init_pipeline()
 
     for line in string.gmatch(req_body,'[^\r\n]+') do
         local start_i, start_j = string.find(line, "9")
@@ -205,17 +158,15 @@ local function set_number_file(req_body)
 
             local number = string.sub(line, start_i, end_i - 1)
 
-            redis_client:set(number, value)
+            red_c:set("ESB_" .. number, value)
         end
     end
     
-    local ok, err = redis_client:commit_pipeline()
+    local ok, err = red_c:commit_pipeline()
     if not ok then
         core.log.warn("failed to commit to pipeline: ", err)
         return 500, {msg="Add numbers to redis failed"}
     end
-
-    local ok, err = redis_client:close()
 
     return 200, {msg='Numbers added'}
 end
@@ -223,15 +174,7 @@ end
 
 local function delete_number_file(req_body)
 
-    local redis_client, err = redis:new()
-
-    local ok, err = redis_client:connect(redis_host, redis_port)
-    if not ok then
-        core.log.warn("failed to connect to redis: ", err)
-        return 500, {msg="Redis connection failed"}
-    end
-
-    redis_client:init_pipeline()
+    red_c:init_pipeline()
 
     for line in string.gmatch(req_body,'[^\r\n]+') do
         local start_i, start_j = string.find(line, "9")
@@ -240,17 +183,15 @@ local function delete_number_file(req_body)
         if end_i ~= nil and start_i ~= nil then
             local number = string.sub(line, start_i, end_i - 1)
 
-            redis_client:del(number)
+            red_c:del("ESB_" .. number)
         end
     end
     
-    local ok, err = redis_client:commit_pipeline()
+    local ok, err = red_c:commit_pipeline()
     if not ok then
         core.log.warn("failed to commit to pipeline: ", err)
         return 500, {msg="Delete numbers from redis failed"}
     end
-
-    local ok, err = redis_client:close()
 
     return 200, {msg='Numbers deleted'}
 end
@@ -258,15 +199,7 @@ end
  
 local function get_number_file(req_body)
 
-    local redis_client, err = redis:new()
-
-    local ok, err = redis_client:connect(redis_host, redis_port)
-    if not ok then
-        core.log.warn("failed to connect to redis: ", err)
-        return 500, {msg="Redis connection failed"}
-    end
-
-    redis_client:init_pipeline()
+    red_c:init_pipeline()
 
     local numbers = {}
     local counter = 1
@@ -278,20 +211,18 @@ local function get_number_file(req_body)
         if end_i ~= nil and start_i ~= nil then
             local number = string.sub(line, start_i, end_i - 1)
 
-            redis_client:get(number)
+            red_c:get("ESB_" .. number)
 
             numbers[counter] = number
             counter = counter + 1 
         end
     end
     
-    local value, err = redis_client:commit_pipeline()
+    local value, err = red_c:commit_pipeline()
     if not value then
         core.log.warn("failed to commit to pipeline: ", err)
         return 500, {msg="Get numbers from redis failed"}
     end
-
-    local ok, err = redis_client:close()
 
     local number_values = {}
 
@@ -314,28 +245,17 @@ local function set_number_batch(req_body)
         return 400, {msg="Malformed request"}
     end
     
-    local redis_client, err = redis:new()
-
-    local ok, err = redis_client:connect(redis_host, redis_port)
-
-    if not ok then
-        core.log.warn("failed to connect to redis: ", err)
-        return 500, {msg="Redis connection failed"}
-    end
-
-    redis_client:init_pipeline()
+    red_c:init_pipeline()
 
     for k, v in pairs(data) do
-        redis_client:set(k, v)
+        red_c:set("ESB_" .. k, v)
     end
 
-    local ok, err = redis_client:commit_pipeline()
+    local ok, err = red_c:commit_pipeline()
     if not ok then
         core.log.warn("failed to commit to pipeline: ", err)
         return 500, {msg="Set numbers to redis failed"}
     end
-
-    local ok, err = redis_client:close()
 
     return 200, {msg="Numbers updated"}
 end
@@ -350,15 +270,7 @@ local function get_number_batch(query_string)
         return 400, {msg="'numbers' param must be provided"}
     end
     
-    local redis_client, err = redis:new()
-
-    local ok, err = redis_client:connect(redis_host, redis_port)
-    if not ok then
-        core.log.warn("failed to connect to redis: ", err)
-        return 500, {msg="Redis connection failed"}
-    end
-
-    redis_client:init_pipeline()
+    red_c:init_pipeline()
 
     local _numbers = {}
     local counter = 1
@@ -366,18 +278,16 @@ local function get_number_batch(query_string)
     for number in string.gmatch(numbers, '([^,]+)') do
         number = number:gsub("%s+", "")
         number = string.gsub(number, "%s+", "")
-        redis_client:get(number)
+        red_c:get("ESB_" .. number)
         _numbers[counter] = number
         counter = counter + 1
     end
 
-    local value, err = redis_client:commit_pipeline()
+    local value, err = red_c:commit_pipeline()
     if not value then
         core.log.warn("failed to commit to pipeline: ", err)
         return 500, {msg="Get numbers from redis failed"}
     end
-
-    local ok, err = redis_client:close()
 
     local number_values = {}
 
@@ -401,29 +311,18 @@ local function delete_number_batch(query_string)
     else
         return 400, {msg="'numbers' param must be provided"}
     end
-    
-    local redis_client, err = redis:new()
 
-    local ok, err = redis_client:connect(redis_host, redis_port)
-
-    if not ok then
-        core.log.warn("failed to connect to redis: ", err)
-        return 500, {msg="Redis connection failed"}
-    end
-
-    redis_client:init_pipeline()
+    red_c:init_pipeline()
 
     for number in string.gmatch(numbers, '([^,]+)') do
-        redis_client:del(number)
+        red_c:del("ESB_" .. number)
     end
 
-    local ok, err = redis_client:commit_pipeline()
+    local ok, err = red_c:commit_pipeline()
     if not ok then
         core.log.warn("failed to commit to pipeline: ", err)
         return 500, {msg="Delete numbers from redis failed"}
     end
-
-    local ok, err = redis_client:close()
 
     return 200, {msg="Numbers deleted"}
 end
@@ -433,6 +332,36 @@ function _M.access(conf, ctx)
     local query_string = core.request.get_uri_args(ctx)
     local req_method = ctx.var.request_method
     local req_body, _ = core.request.get_body(max_body_size, ctx)
+
+
+    local server_list = {}
+
+    for k,v in pairs(conf["body"]["redis-cluster"]) do
+      server_list[#server_list +1] = {ip = v["ip"], port = v["port"]}
+    end
+
+    local config = {
+    name = "esb", --rediscluster name
+      serv_list = server_list,
+      read_only = true,
+      keepalive_cons = 1000,                  --redis connection pool size
+      connect_timeout = 1000,                 --timeout while connecting
+      read_timeout = 1000,                    --timeout while reading
+      send_timeout = 1000,                    --timeout while sending
+      max_redirection = 5,                    --maximum retry attempts for redirection,
+      max_connection_attempts = 1,            --maximum retry attempts for connection
+      auth_user = "esb",
+      auth_password = "e6cc817c90b04587ed30638e3f45deec"
+    }
+
+    local redis_cluster = require "resty.rediscluster"
+
+    red_c, eee = redis_cluster:new(config)
+
+    if eee then
+        core.log.warn("failed to connect to redis cluster: ", eee)
+        return
+    end
 
     core.response.set_header("Content-Type", "application/json")
 
