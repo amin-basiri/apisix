@@ -47,72 +47,72 @@ curl -i -X POST "http://127.0.0.1:9080/del_number_file" -H "Host: example.com" -
 ----------------------------------------------------------------------------------
 
 
-# Manage Redis Numbers
+# Manage Redis MSISDNs
 
-### Add One Number
+### Add One MSISDN
 
 ```shell
-curl -i -X POST "http://127.0.0.1:9080/manage_redis_numbers?type=normal" -H "Host: example.com" -H 'Content-Type: application/json' -d '{"number": "9011337323"}'
+curl -i -X POST "http://127.0.0.1:9080/manage_redis_numbers?type=normal" -H "Host: example.com" -H 'Content-Type: application/json' -d '{"msisdn": "9011337323"}'
 ```
 
-### Get One Number
+### Get One MSISDN
 
 ```shell
-curl -i -X GET "http://127.0.0.1:9080/manage_redis_numbers?type=normal&number=9011337323" -H "Host: example.com"
-```
-
-
-### Delete One Number
-
-```shell
-curl -i -X DELETE "http://127.0.0.1:9080/manage_redis_numbers?type=normal&number=9011337323" -H "Host: example.com"
+curl -i -X GET "http://127.0.0.1:9080/manage_redis_numbers?type=normal&msisdn=9011337323" -H "Host: example.com"
 ```
 
 
-### Edit One Number
+### Delete One MSISDN
 
 ```shell
-curl -i -X PUT "http://127.0.0.1:9080/manage_redis_numbers?type=normal" -H "Host: example.com" -H 'Content-Type: application/json' -d '{"number": "9011337323", "to": "E"}'
+curl -i -X DELETE "http://127.0.0.1:9080/manage_redis_numbers?type=normal&msisdn=9011337323" -H "Host: example.com"
 ```
 
 
-### Set (add, edit) Number File
+### Edit One MSISDN
 
 ```shell
-curl -i -X POST "http://127.0.0.1:9080/manage_redis_numbers?type=file" -H "Host: example.com" -F numbers=@numbers.csv 
+curl -i -X PUT "http://127.0.0.1:9080/manage_redis_numbers?type=normal" -H "Host: example.com" -H 'Content-Type: application/json' -d '{"msisdn": "9011337323", "to": "E"}'
 ```
 
 
-### Get Number File
+### Set (add, edit) MSISDN File
 
 ```shell
-curl -i -X GET "http://127.0.0.1:9080/manage_redis_numbers?type=file" -H "Host: example.com" -F numbers=@numbers.csv 
+curl -i -X POST "http://127.0.0.1:9080/manage_redis_numbers?type=file" -H "Host: example.com" -F msisdns=@numbers.csv 
 ```
 
 
-### Delete Number File
+### Get MSISDN File
 
 ```shell
-curl -i -X DELETE "http://127.0.0.1:9080/manage_redis_numbers?type=file" -H "Host: example.com" -F numbers=@numbers.csv 
+curl -i -X GET "http://127.0.0.1:9080/manage_redis_numbers?type=file" -H "Host: example.com" -F msisdns=@numbers.csv 
 ```
 
 
-### Set (add, edit) Number Batch
+### Delete MSISDN File
+
+```shell
+curl -i -X DELETE "http://127.0.0.1:9080/manage_redis_numbers?type=file" -H "Host: example.com" -F msisdns=@numbers.csv 
+```
+
+
+### Set (add, edit) MSISDN Batch
 
 ```shell
 curl -i -X POST "http://127.0.0.1:9080/manage_redis_numbers?type=batch" -H "Host: example.com" -H 'Content-Type: application/json' -d '{"9011337323": "H", "9011337324": "E", "9011337325": "H"}'
 ```
 
 
-### Get Number Batch
+### Get MSISDN Batch
 
 ```shell
-curl -i -X GET "http://127.0.0.1:9080/manage_redis_numbers?type=batch&numbers=9011337323,9011337324,9011337325" -H "Host: example.com"
+curl -i -X GET "http://127.0.0.1:9080/manage_redis_numbers?type=batch&msisdns=9011337323,9011337324,9011337325" -H "Host: example.com"
 ```
 
 
-### Delete Number Batch
+### Delete MSISDN Batch
 
 ```shell
-curl -i -X DELETE "http://127.0.0.1:9080/manage_redis_numbers?type=batch&numbers=9011337323,9011337324,9011337325" -H "Host: example.com"
+curl -i -X DELETE "http://127.0.0.1:9080/manage_redis_numbers?type=batch&msisdns=9011337323,9011337324,9011337325" -H "Host: example.com"
 ```

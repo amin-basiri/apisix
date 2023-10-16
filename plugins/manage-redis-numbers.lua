@@ -5,7 +5,7 @@ local cjson = require("cjson.safe")
 local redis = require "resty.redis"
 
 
-local plugin_name = "manage-redis-numbers"
+local plugin_name = "manage-redis-msisdns"
 
 
 local schema = {}
@@ -27,27 +27,27 @@ function _M.check_schema(conf)
 end
 
 
-local function get_number_string(str)
+local function get_msisdn_string(str)
     local i, j = string.find(str, '9')
-    local number = string.sub(str, i, i+9)
+    local msisdn = string.sub(str, i, i+9)
 
-    return number
+    return msisdn
 end
 
 
-local function add_number(req_body)
+local function add_msisdn(req_body)
     local data, err = cjson.decode(req_body)
     if err then
         core.log.warn("Invalid json: ", err)
         return 400, {msg="Malformed request"}
     end
 
-    if not data["number"] then
-        core.log.warn("'number' param must be provided")
-        return 400, {msg="'number' param must be provided"}
+    if not data["msisdn"] then
+        core.log.warn("'msisdn' param must be provided")
+        return 400, {msg="'msisdn' param must be provided"}
     end
 
-    local number = get_number_string(data["number"])
+    local msisdn = get_msisdn_string(data["msisdn"])
     
     local redis_client, err = redis:new()
 
@@ -58,28 +58,28 @@ local function add_number(req_body)
         return 500, {msg="Redis connection failed"}
     end
 
-    local ok, err = redis_client:set(number, "H")
+    local ok, err = redis_client:set(msisdn, "H")
     if not ok then
-        core.log.warn("failed to set number: ", err)
-        return 500, {msg="Set number to redis failed"}
+        core.log.warn("failed to set msisdn: ", err)
+        return 500, {msg="Set msisdn to redis failed"}
     end
 
     local ok, err = redis_client:close()
 
-    return 200, {msg=number .. " added"}
+    return 200, {msg=msisdn .. " added"}
 end
 
 
-local function get_number(query_string)
-    local number
+local function get_msisdn(query_string)
+    local msisdn
 
-    if query_string["number"] then
-        number = query_string["number"]
+    if query_string["msisdn"] then
+        msisdn = query_string["msisdn"]
     else
-        return 400, {msg="'number' param must be provided"}
+        return 400, {msg="'msisdn' param must be provided"}
     end
 
-    number = get_number_string(number)
+    msisdn = get_msisdn_string(msisdn)
 
     local redis_client, err = redis:new()
 
@@ -89,10 +89,10 @@ local function get_number(query_string)
         return 500, {msg="Redis connection failed"}
     end
 
-    local value, err = redis_client:get(number)
+    local value, err = redis_client:get(msisdn)
     if not value then
-        core.log.warn("failed to get number: ", err)
-        return 500, {msg="Get number from redis failed"}
+        core.log.warn("failed to get msisdn: ", err)
+        return 500, {msg="Get msisdn from redis failed"}
     end
 
     local ok, err = redis_client:close()
@@ -101,20 +101,20 @@ local function get_number(query_string)
         value = "E"
     end
 
-    return 200, {[number]=value}
+    return 200, {[msisdn]=value}
 end
 
 
-local function delete_number(query_string)
-    local number
+local function delete_msisdn(query_string)
+    local msisdn
 
-    if query_string["number"] then
-        number = query_string["number"]
+    if query_string["msisdn"] then
+        msisdn = query_string["msisdn"]
     else
-        return 400, {msg="'number' param must be provided"}
+        return 400, {msg="'msisdn' param must be provided"}
     end
 
-    number = get_number_string(number)
+    msisdn = get_msisdn_string(msisdn)
 
     local redis_client, err = redis:new()
 
@@ -125,28 +125,28 @@ local function delete_number(query_string)
         return 500, {msg="Redis connection failed"}
     end
 
-    local ok, err = redis_client:del(number)
+    local ok, err = redis_client:del(msisdn)
     if not ok then
-        core.log.warn("failed to delete number: ", err)
-        return 500, {msg="Delete number from redis failed"}
+        core.log.warn("failed to delete msisdn: ", err)
+        return 500, {msg="Delete msisdn from redis failed"}
     end
 
     local ok, err = redis_client:close()
 
-    return 200, {msg=number .. " deleted"}
+    return 200, {msg=msisdn .. " deleted"}
 end
 
     
-local function edit_number(req_body)
+local function edit_msisdn(req_body)
     local data, err = cjson.decode(req_body)
     if err then
         core.log.warn("Invalid json: ", err)
         return 400, {msg="Malformed request"}
     end
 
-    if not data["number"] then
-        core.log.warn("'number' param must be provided")
-        return 400, {msg="'number' param must be provided"}
+    if not data["msisdn"] then
+        core.log.warn("'msisdn' param must be provided")
+        return 400, {msg="'msisdn' param must be provided"}
     end
 
     if not data["to"] then
@@ -154,7 +154,7 @@ local function edit_number(req_body)
         return 400, {msg="'to' param must be provided"}
     end
 
-    local number = get_number_string(data["number"])
+    local msisdn = get_msisdn_string(data["msisdn"])
     local to_value = data["to"]
     
     local redis_client, err = redis:new()
@@ -166,19 +166,19 @@ local function edit_number(req_body)
         return 500, {msg="Redis connection failed"}
     end
 
-    local ok, err = redis_client:set(number, to_value)
+    local ok, err = redis_client:set(msisdn, to_value)
     if not ok then
-        core.log.warn("failed to edit number: ", err)
-        return 500, {msg="Edit number in redis failed"}
+        core.log.warn("failed to edit msisdn: ", err)
+        return 500, {msg="Edit msisdn in redis failed"}
     end
 
     local ok, err = redis_client:close()
 
-    return 200, {msg=number .. " updated"}
+    return 200, {msg=msisdn .. " updated"}
 end
 
 
-local function set_number_file(req_body)
+local function set_msisdn_file(req_body)
 
     local redis_client, err = redis:new()
 
@@ -203,25 +203,25 @@ local function set_number_file(req_body)
                 value = "H"
             end
 
-            local number = string.sub(line, start_i, end_i - 1)
+            local msisdn = string.sub(line, start_i, end_i - 1)
 
-            redis_client:set(number, value)
+            redis_client:set(msisdn, value)
         end
     end
     
     local ok, err = redis_client:commit_pipeline()
     if not ok then
         core.log.warn("failed to commit to pipeline: ", err)
-        return 500, {msg="Add numbers to redis failed"}
+        return 500, {msg="Add msisdns to redis failed"}
     end
 
     local ok, err = redis_client:close()
 
-    return 200, {msg='Numbers added'}
+    return 200, {msg='msisdns added'}
 end
 
 
-local function delete_number_file(req_body)
+local function delete_msisdn_file(req_body)
 
     local redis_client, err = redis:new()
 
@@ -238,25 +238,25 @@ local function delete_number_file(req_body)
         local end_i, end_j = string.find(line, ",")
 
         if end_i ~= nil and start_i ~= nil then
-            local number = string.sub(line, start_i, end_i - 1)
+            local msisdn = string.sub(line, start_i, end_i - 1)
 
-            redis_client:del(number)
+            redis_client:del(msisdn)
         end
     end
     
     local ok, err = redis_client:commit_pipeline()
     if not ok then
         core.log.warn("failed to commit to pipeline: ", err)
-        return 500, {msg="Delete numbers from redis failed"}
+        return 500, {msg="Delete msisdns from redis failed"}
     end
 
     local ok, err = redis_client:close()
 
-    return 200, {msg='Numbers deleted'}
+    return 200, {msg='msisdns deleted'}
 end
 
  
-local function get_number_file(req_body)
+local function get_msisdn_file(req_body)
 
     local redis_client, err = redis:new()
 
@@ -268,7 +268,7 @@ local function get_number_file(req_body)
 
     redis_client:init_pipeline()
 
-    local numbers = {}
+    local msisdns = {}
     local counter = 1
 
     for line in string.gmatch(req_body,'[^\r\n]+') do
@@ -276,11 +276,11 @@ local function get_number_file(req_body)
         local end_i, end_j = string.find(line, ",")
 
         if end_i ~= nil and start_i ~= nil then
-            local number = string.sub(line, start_i, end_i - 1)
+            local msisdn = string.sub(line, start_i, end_i - 1)
 
-            redis_client:get(number)
+            redis_client:get(msisdn)
 
-            numbers[counter] = number
+            msisdns[counter] = msisdn
             counter = counter + 1 
         end
     end
@@ -288,26 +288,26 @@ local function get_number_file(req_body)
     local value, err = redis_client:commit_pipeline()
     if not value then
         core.log.warn("failed to commit to pipeline: ", err)
-        return 500, {msg="Get numbers from redis failed"}
+        return 500, {msg="Get msisdns from redis failed"}
     end
 
     local ok, err = redis_client:close()
 
-    local number_values = {}
+    local msisdn_values = {}
 
     for i=1, counter - 1 do
         if value[i] == cjson.null then
-            number_values[numbers[i]] = "E"
+            msisdn_values[msisdns[i]] = "E"
         else
-            number_values[numbers[i]] = value[i]
+            msisdn_values[msisdns[i]] = value[i]
         end
     end
 
-    return 200, cjson.encode(number_values)
+    return 200, cjson.encode(msisdn_values)
 end
 
 
-local function set_number_batch(req_body)
+local function set_msisdn_batch(req_body)
     local data, err = cjson.decode(req_body)
     if err then
         core.log.warn("Invalid json: ", err)
@@ -332,22 +332,22 @@ local function set_number_batch(req_body)
     local ok, err = redis_client:commit_pipeline()
     if not ok then
         core.log.warn("failed to commit to pipeline: ", err)
-        return 500, {msg="Set numbers to redis failed"}
+        return 500, {msg="Set msisdns to redis failed"}
     end
 
     local ok, err = redis_client:close()
 
-    return 200, {msg="Numbers updated"}
+    return 200, {msg="msisdns updated"}
 end
 
 
-local function get_number_batch(query_string)
-    local numbers
+local function get_msisdn_batch(query_string)
+    local msisdns
 
-    if query_string["numbers"] then
-        numbers = query_string["numbers"]
+    if query_string["msisdns"] then
+        msisdns = query_string["msisdns"]
     else
-        return 400, {msg="'numbers' param must be provided"}
+        return 400, {msg="'msisdns' param must be provided"}
     end
     
     local redis_client, err = redis:new()
@@ -360,46 +360,46 @@ local function get_number_batch(query_string)
 
     redis_client:init_pipeline()
 
-    local _numbers = {}
+    local _msisdns = {}
     local counter = 1
 
-    for number in string.gmatch(numbers, '([^,]+)') do
-        number = number:gsub("%s+", "")
-        number = string.gsub(number, "%s+", "")
-        redis_client:get(number)
-        _numbers[counter] = number
+    for msisdn in string.gmatch(msisdns, '([^,]+)') do
+        msisdn = msisdn:gsub("%s+", "")
+        msisdn = string.gsub(msisdn, "%s+", "")
+        redis_client:get(msisdn)
+        _msisdns[counter] = msisdn
         counter = counter + 1
     end
 
     local value, err = redis_client:commit_pipeline()
     if not value then
         core.log.warn("failed to commit to pipeline: ", err)
-        return 500, {msg="Get numbers from redis failed"}
+        return 500, {msg="Get msisdns from redis failed"}
     end
 
     local ok, err = redis_client:close()
 
-    local number_values = {}
+    local msisdn_values = {}
 
     for i=1, counter - 1 do
         if value[i] == cjson.null then
-            number_values[_numbers[i]] = "E"
+            msisdn_values[_msisdns[i]] = "E"
         else
-            number_values[_numbers[i]] = value[i]
+            msisdn_values[_msisdns[i]] = value[i]
         end
     end
 
-    return 200, cjson.encode(number_values)
+    return 200, cjson.encode(msisdn_values)
 end
 
 
-local function delete_number_batch(query_string)
-    local numbers
+local function delete_msisdn_batch(query_string)
+    local msisdns
 
-    if query_string["numbers"] then
-        numbers = query_string["numbers"]
+    if query_string["msisdns"] then
+        msisdns = query_string["msisdns"]
     else
-        return 400, {msg="'numbers' param must be provided"}
+        return 400, {msg="'msisdns' param must be provided"}
     end
     
     local redis_client, err = redis:new()
@@ -413,19 +413,19 @@ local function delete_number_batch(query_string)
 
     redis_client:init_pipeline()
 
-    for number in string.gmatch(numbers, '([^,]+)') do
-        redis_client:del(number)
+    for msisdn in string.gmatch(msisdns, '([^,]+)') do
+        redis_client:del(msisdn)
     end
 
     local ok, err = redis_client:commit_pipeline()
     if not ok then
         core.log.warn("failed to commit to pipeline: ", err)
-        return 500, {msg="Delete numbers from redis failed"}
+        return 500, {msg="Delete msisdns from redis failed"}
     end
 
     local ok, err = redis_client:close()
 
-    return 200, {msg="Numbers deleted"}
+    return 200, {msg="msisdns deleted"}
 end
 
 
@@ -438,33 +438,33 @@ function _M.access(conf, ctx)
 
     if query_string["type"] == "normal" then
         if req_method == "POST" then
-            return add_number(req_body)
+            return add_msisdn(req_body)
         elseif req_method == "GET" then
-            return get_number(query_string)
+            return get_msisdn(query_string)
         elseif req_method == "DELETE" then
-            return delete_number(query_string)
+            return delete_msisdn(query_string)
         elseif req_method == "PUT" then
-            return edit_number(req_body)
+            return edit_msisdn(req_body)
         else
             return 405, {msg="Method not allowed"}
         end
     elseif query_string["type"] == "file" then
         if req_method == "POST" then
-            return set_number_file(req_body)
+            return set_msisdn_file(req_body)
         elseif req_method == "DELETE" then
-            return delete_number_file(req_body)
+            return delete_msisdn_file(req_body)
         elseif req_method == "GET" then
-            return get_number_file(req_body)
+            return get_msisdn_file(req_body)
         else
             return 405, {msg="Method not allowed"}
         end
     elseif query_string["type"] == "batch" then
         if req_method == "POST" then
-            return set_number_batch(req_body)
+            return set_msisdn_batch(req_body)
         elseif req_method == "GET" then
-            return get_number_batch(query_string)
+            return get_msisdn_batch(query_string)
         elseif req_method == "DELETE" then
-            return delete_number_batch(query_string)
+            return delete_msisdn_batch(query_string)
         else
             return 405, {msg="Method not allowed"}
         end

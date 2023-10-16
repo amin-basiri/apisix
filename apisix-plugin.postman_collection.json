@@ -22,7 +22,7 @@
 							"mode": "formdata",
 							"formdata": [
 								{
-									"key": "numbers",
+									"key": "msisdns",
 									"type": "file",
 									"src": "/home/amin/Desktop/projects/apisix-custom-plugin/numbers.csv"
 								}
@@ -42,62 +42,6 @@
 						}
 					},
 					"response": [
-						{
-							"name": "Succeed",
-							"originalRequest": {
-								"method": "GET",
-								"header": [],
-								"body": {
-									"mode": "formdata",
-									"formdata": [
-										{
-											"key": "numbers",
-											"type": "file",
-											"src": "/home/amin/Desktop/projects/apisix-custom-plugin/numbers.csv"
-										}
-									]
-								},
-								"url": {
-									"raw": "{{base_redis_manager_url}}?type=file",
-									"host": [
-										"{{base_redis_manager_url}}"
-									],
-									"query": [
-										{
-											"key": "type",
-											"value": "file"
-										}
-									]
-								}
-							},
-							"status": "OK",
-							"code": 200,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "Date",
-									"value": "Sat, 14 Oct 2023 12:32:35 GMT"
-								},
-								{
-									"key": "Content-Type",
-									"value": "application/json"
-								},
-								{
-									"key": "Transfer-Encoding",
-									"value": "chunked"
-								},
-								{
-									"key": "Connection",
-									"value": "keep-alive"
-								},
-								{
-									"key": "Server",
-									"value": "APISIX/3.6.0"
-								}
-							],
-							"cookie": [],
-							"body": "{\n    \"9011337323\": \"E\",\n    \"9011337325\": \"E\",\n    \"9011337324\": \"E\"\n}"
-						},
 						{
 							"name": "Server Error",
 							"originalRequest": {
@@ -153,6 +97,62 @@
 							],
 							"cookie": [],
 							"body": "{\n    \"msg\": \"Redis connection failure\"\n}"
+						},
+						{
+							"name": "Succeed",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "msisdns",
+											"type": "file",
+											"src": "/home/amin/Desktop/projects/apisix-custom-plugin/numbers.csv"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_redis_manager_url}}?type=file",
+									"host": [
+										"{{base_redis_manager_url}}"
+									],
+									"query": [
+										{
+											"key": "type",
+											"value": "file"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Mon, 16 Oct 2023 07:10:56 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Server",
+									"value": "APISIX/3.6.0"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"9011337326\": \"E\",\n    \"9011337323\": \"E\",\n    \"9011337327\": \"E\",\n    \"9011337324\": \"E\",\n    \"9011337325\": \"E\"\n}"
 						}
 					]
 				},
@@ -165,7 +165,7 @@
 							"mode": "formdata",
 							"formdata": [
 								{
-									"key": "numbers",
+									"key": "msisdns",
 									"type": "file",
 									"src": "/home/amin/Desktop/projects/apisix-custom-plugin/numbers.csv"
 								}
@@ -194,7 +194,7 @@
 									"mode": "formdata",
 									"formdata": [
 										{
-											"key": "numbers",
+											"key": "msisdns",
 											"type": "file",
 											"src": "/home/amin/Desktop/projects/apisix-custom-plugin/numbers.csv"
 										}
@@ -219,7 +219,7 @@
 							"header": [
 								{
 									"key": "Date",
-									"value": "Sat, 14 Oct 2023 12:49:45 GMT"
+									"value": "Mon, 16 Oct 2023 07:11:25 GMT"
 								},
 								{
 									"key": "Content-Type",
@@ -239,7 +239,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"msg\": \"Numbers added\"\n}"
+							"body": "{\n    \"msg\": \"msisdns added\"\n}"
 						}
 					]
 				},
@@ -252,7 +252,7 @@
 							"mode": "formdata",
 							"formdata": [
 								{
-									"key": "numbers",
+									"key": "msisdns",
 									"type": "file",
 									"src": "/home/amin/Desktop/projects/apisix-custom-plugin/numbers.csv"
 								}
@@ -281,7 +281,7 @@
 									"mode": "formdata",
 									"formdata": [
 										{
-											"key": "numbers",
+											"key": "msisdns",
 											"type": "file",
 											"src": "/home/amin/Desktop/projects/apisix-custom-plugin/numbers.csv"
 										}
@@ -306,7 +306,7 @@
 							"header": [
 								{
 									"key": "Date",
-									"value": "Sat, 14 Oct 2023 12:53:09 GMT"
+									"value": "Mon, 16 Oct 2023 07:12:00 GMT"
 								},
 								{
 									"key": "Content-Type",
@@ -326,7 +326,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"msg\": \"Numbers deleted\"\n}"
+							"body": "{\n    \"msg\": \"msisdns deleted\"\n}"
 						}
 					]
 				}
@@ -342,7 +342,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_redis_manager_url}}?type=batch&numbers=9011337323,9011337324,9011337325",
+							"raw": "{{base_redis_manager_url}}?type=batch&msisdns=9011337323,9011337324,9011337325",
 							"host": [
 								"{{base_redis_manager_url}}"
 							],
@@ -352,7 +352,7 @@
 									"value": "batch"
 								},
 								{
-									"key": "numbers",
+									"key": "msisdns",
 									"value": "9011337323,9011337324,9011337325"
 								}
 							]
@@ -365,7 +365,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{base_redis_manager_url}}?type=batch&numbers=9011337323,9011337324,9011337325",
+									"raw": "{{base_redis_manager_url}}?type=batch&msisdns=9011337323,9011337324,9011337325",
 									"host": [
 										"{{base_redis_manager_url}}"
 									],
@@ -375,7 +375,7 @@
 											"value": "batch"
 										},
 										{
-											"key": "numbers",
+											"key": "msisdns",
 											"value": "9011337323,9011337324,9011337325"
 										}
 									]
@@ -387,7 +387,7 @@
 							"header": [
 								{
 									"key": "Date",
-									"value": "Sat, 14 Oct 2023 12:59:28 GMT"
+									"value": "Mon, 16 Oct 2023 07:08:36 GMT"
 								},
 								{
 									"key": "Content-Type",
@@ -407,7 +407,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"9011337324\": \"E\",\n    \"9011337323\": \"E\",\n    \"9011337325\": \"E\"\n}"
+							"body": "{\n    \"9011337323\": \"E\",\n    \"9011337325\": \"E\",\n    \"9011337324\": \"E\"\n}"
 						}
 					]
 				},
@@ -446,7 +446,12 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"9011337323\": \"H\",\n    \"9011337324\": \"E\",\n    \"9011337325\": \"H\"\n}"
+									"raw": "{\n    \"9011337323\": \"H\",\n    \"9011337324\": \"E\",\n    \"9011337325\": \"E\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
 								},
 								"url": {
 									"raw": "{{base_redis_manager_url}}?type=batch",
@@ -467,7 +472,7 @@
 							"header": [
 								{
 									"key": "Date",
-									"value": "Sat, 14 Oct 2023 13:03:48 GMT"
+									"value": "Mon, 16 Oct 2023 07:08:59 GMT"
 								},
 								{
 									"key": "Content-Type",
@@ -487,7 +492,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"msg\": \"Numbers updated\"\n}"
+							"body": "{\n    \"msg\": \"msisdns updated\"\n}"
 						}
 					]
 				},
@@ -497,7 +502,7 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{base_redis_manager_url}}?type=batch&numbers=9011337323,9011337324,9011337325",
+							"raw": "{{base_redis_manager_url}}?type=batch&msisdns=9011337323,9011337324,9011337325",
 							"host": [
 								"{{base_redis_manager_url}}"
 							],
@@ -507,7 +512,7 @@
 									"value": "batch"
 								},
 								{
-									"key": "numbers",
+									"key": "msisdns",
 									"value": "9011337323,9011337324,9011337325"
 								}
 							]
@@ -520,7 +525,7 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "{{base_redis_manager_url}}?type=batch&numbers=9011337323,9011337324,9011337325",
+									"raw": "{{base_redis_manager_url}}?type=batch&msisdns=9011337323,9011337324,9011337325",
 									"host": [
 										"{{base_redis_manager_url}}"
 									],
@@ -530,7 +535,7 @@
 											"value": "batch"
 										},
 										{
-											"key": "numbers",
+											"key": "msisdns",
 											"value": "9011337323,9011337324,9011337325"
 										}
 									]
@@ -542,7 +547,7 @@
 							"header": [
 								{
 									"key": "Date",
-									"value": "Sat, 14 Oct 2023 13:06:37 GMT"
+									"value": "Mon, 16 Oct 2023 07:09:21 GMT"
 								},
 								{
 									"key": "Content-Type",
@@ -562,7 +567,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"msg\": \"Numbers deleted\"\n}"
+							"body": "{\n    \"msg\": \"msisdns deleted\"\n}"
 						}
 					]
 				}
@@ -578,7 +583,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_redis_manager_url}}?type=normal&number=9011337323",
+							"raw": "{{base_redis_manager_url}}?type=normal&msisdn=9011337323",
 							"host": [
 								"{{base_redis_manager_url}}"
 							],
@@ -588,7 +593,7 @@
 									"value": "normal"
 								},
 								{
-									"key": "number",
+									"key": "msisdn",
 									"value": "9011337323"
 								}
 							]
@@ -601,7 +606,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{base_redis_manager_url}}?type=normal&number=9011337323",
+									"raw": "{{base_redis_manager_url}}?type=normal&msisdn=9011337323",
 									"host": [
 										"{{base_redis_manager_url}}"
 									],
@@ -611,7 +616,7 @@
 											"value": "normal"
 										},
 										{
-											"key": "number",
+											"key": "msisdn",
 											"value": "9011337323"
 										}
 									]
@@ -623,7 +628,7 @@
 							"header": [
 								{
 									"key": "Date",
-									"value": "Sat, 14 Oct 2023 13:09:38 GMT"
+									"value": "Mon, 16 Oct 2023 07:06:13 GMT"
 								},
 								{
 									"key": "Content-Type",
@@ -643,7 +648,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"9011337323\": \"E\"\n}"
+							"body": "{\n    \"9011337323\": \"H\"\n}"
 						}
 					]
 				},
@@ -654,7 +659,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"number\": \"9011337323\"\n}",
+							"raw": "{\n    \"msisdn\": \"9011337323\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -682,7 +687,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"number\": \"9011337323\"\n}",
+									"raw": "{\n    \"msisdn\": \"9011337323\"\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -708,7 +713,7 @@
 							"header": [
 								{
 									"key": "Date",
-									"value": "Sat, 14 Oct 2023 13:24:37 GMT"
+									"value": "Mon, 16 Oct 2023 07:05:39 GMT"
 								},
 								{
 									"key": "Content-Type",
@@ -739,7 +744,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"number\": \"9011337323\",\n    \"to\": \"H\"\n}",
+							"raw": "{\n    \"msisdn\": \"9011337323\",\n    \"to\": \"H\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -767,7 +772,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"number\": \"9011337323\",\n    \"to\": \"H\"\n}",
+									"raw": "{\n    \"msisdn\": \"9011337323\",\n    \"to\": \"H\"\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -793,7 +798,7 @@
 							"header": [
 								{
 									"key": "Date",
-									"value": "Sat, 14 Oct 2023 13:27:49 GMT"
+									"value": "Mon, 16 Oct 2023 07:06:39 GMT"
 								},
 								{
 									"key": "Content-Type",
@@ -823,7 +828,7 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{base_redis_manager_url}}?type=normal&number=9011337323",
+							"raw": "{{base_redis_manager_url}}?type=normal&msisdn=9011337323",
 							"host": [
 								"{{base_redis_manager_url}}"
 							],
@@ -833,7 +838,7 @@
 									"value": "normal"
 								},
 								{
-									"key": "number",
+									"key": "msisdn",
 									"value": "9011337323"
 								}
 							]
@@ -846,7 +851,7 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "{{base_redis_manager_url}}?type=normal&number=9011337323",
+									"raw": "{{base_redis_manager_url}}?type=normal&msisdn=9011337323",
 									"host": [
 										"{{base_redis_manager_url}}"
 									],
@@ -856,7 +861,7 @@
 											"value": "normal"
 										},
 										{
-											"key": "number",
+											"key": "msisdn",
 											"value": "9011337323"
 										}
 									]
@@ -868,7 +873,7 @@
 							"header": [
 								{
 									"key": "Date",
-									"value": "Sat, 14 Oct 2023 13:29:32 GMT"
+									"value": "Mon, 16 Oct 2023 07:07:13 GMT"
 								},
 								{
 									"key": "Content-Type",
