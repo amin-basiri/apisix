@@ -38,7 +38,7 @@ function _M.access(conf, ctx)
     
     local redis_client, err = redis:new()
 
-    local ok, err = redis_client:connect("redis", 6379)
+    local ok, err = redis_client:connect("127.0.0.1", 6379)
 
     if not ok then
         core.log.warn("failed to connect to redis: ", err)

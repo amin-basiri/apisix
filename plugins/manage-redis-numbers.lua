@@ -7,6 +7,8 @@ local redis = require "resty.redis"
 
 local plugin_name = "manage-redis-msisdns"
 
+local backup_file_name = "backup.csv"
+
 
 local schema = {}
 
@@ -24,6 +26,181 @@ local redis_port = 6379
 
 function _M.check_schema(conf)
     return core.schema.check(schema, conf)
+end
+
+
+local function add_backup_file(msisdns)
+    local backup_file = io.open(backup_file_name, "w+")
+
+    -- core.log.warn("Heeeeeeeeeeeeeeeeeeeeey")
+    if not backup_file then
+        core.log.error("Where is the backup file?")
+        return
+    end
+    -- core.log.warn("Hoooooooooooooooooooooo")
+    for k,v in pairs(msisdns) do
+        -- core.log.warn(k..","..v..'\n')
+        backup_file:write(k..","..v..'\n')
+    end
+
+    io.close(backup_file)
+end
+
+
+local  function file_exists(name)
+    local f=io.open(name,"r")
+    if f~=nil then io.close(f) return true else return false end
+ end
+
+
+local function dump_table(o)
+if type(o) == 'table' then
+    local s = '{ '
+    for k,v in pairs(o) do
+        if type(k) ~= 'number' then k = '"'..k..'"' end
+        s = s .. '['..k..'] = ' .. dump_table(v) .. ','
+    end
+    return s .. '} '
+else
+    return tostring(o)
+end
+end
+
+
+local function delete_msisdn_from_backup_file(msisdns)
+
+    -- Get file content
+    local backup_file = io.open(backup_file_name, 'r')
+    local backup_file_content = {}
+
+    if not backup_file then
+        core.log.error("Where is the backup file?")
+        return false
+    end
+
+    for line in backup_file:lines() do
+        table.insert(backup_file_content, line)
+    end
+    io.close(backup_file)
+
+
+    -- Delete existing msisdns
+    backup_file = io.open(backup_file_name, 'w')
+
+    if not backup_file then
+        core.log.error("Where is the backup file?")
+        return false
+    end
+
+    
+    for index, value in ipairs(backup_file_content) do
+        local start_i, start_j = string.find(value, "9")
+        local end_i, end_j = string.find(value, ",")
+
+        local msisdn
+        local state
+
+        if end_i ~= nil and start_i ~= nil then
+            state = string.sub(value, end_i + 1)
+            state = state:gsub("%s+", "")
+            state = string.gsub(state, "%s+", "")
+
+            msisdn = string.sub(value, start_i, end_i - 1)
+        end
+
+        local is_deleted = msisdns[msisdn]
+        
+        if not is_deleted then
+            backup_file:write(msisdn..","..state..'\n')
+        end
+
+    end
+
+    io.close(backup_file)
+
+    return true
+
+end
+
+
+local function update_backup_file(msisdns)
+
+    -- Add new file
+    if not file_exists(backup_file_name) then
+        -- core.log.warn("eeeeeeeeeeee")
+        add_backup_file(msisdns)
+        return true
+    end
+
+    
+    -- core.log.warn("0000000000000000")
+
+
+    -- Get file content
+    local backup_file = io.open(backup_file_name, 'r')
+    local backup_file_content = {}
+
+    if not backup_file then
+        core.log.error("Where is the backup file?")
+        return false
+    end
+
+    for line in backup_file:lines() do
+        table.insert(backup_file_content, line)
+    end
+    io.close(backup_file)
+
+    -- core.log.warn(dump(backup_file_content))
+
+
+    -- Set file content
+    backup_file = io.open(backup_file_name, 'w')
+
+    if not backup_file then
+        core.log.error("Where is the backup file?")
+        return false
+    end
+
+    -- Update existing msisdns
+    for index, value in ipairs(backup_file_content) do
+        local start_i, start_j = string.find(value, "9")
+        local end_i, end_j = string.find(value, ",")
+
+        local msisdn
+        local state
+
+        if end_i ~= nil and start_i ~= nil then
+            state = string.sub(value, end_i + 1)
+            state = state:gsub("%s+", "")
+            state = string.gsub(state, "%s+", "")
+
+            msisdn = string.sub(value, start_i, end_i - 1)
+        end
+
+        local updated_state = msisdns[msisdn]
+        
+        msisdns[msisdn] = nil
+
+        -- core.log.warn("EEEE: "..updated_state)
+        if not updated_state then
+            updated_state = state
+        end
+
+        backup_file:write(msisdn..","..updated_state..'\n')
+
+    end
+
+    -- Add new msisdns
+    for k,v in pairs(msisdns) do
+        -- core.log.warn("Adding "..k)
+
+        backup_file:write(k..","..v..'\n')
+    end
+
+    io.close(backup_file)
+
+    return true
+
 end
 
 
@@ -188,6 +365,8 @@ local function set_msisdn_file(req_body)
         return 500, {msg="Redis connection failed"}
     end
 
+    local msisdns = {}
+
     redis_client:init_pipeline()
 
     for line in string.gmatch(req_body,'[^\r\n]+') do
@@ -204,6 +383,8 @@ local function set_msisdn_file(req_body)
             end
 
             local msisdn = string.sub(line, start_i, end_i - 1)
+            
+            msisdns[msisdn] = value
 
             redis_client:set(msisdn, value)
         end
@@ -216,6 +397,8 @@ local function set_msisdn_file(req_body)
     end
 
     local ok, err = redis_client:close()
+
+    local result = update_backup_file(msisdns)
 
     return 200, {msg='msisdns added'}
 end
@@ -231,6 +414,8 @@ local function delete_msisdn_file(req_body)
         return 500, {msg="Redis connection failed"}
     end
 
+    local msisdns = {}
+
     redis_client:init_pipeline()
 
     for line in string.gmatch(req_body,'[^\r\n]+') do
@@ -239,6 +424,8 @@ local function delete_msisdn_file(req_body)
 
         if end_i ~= nil and start_i ~= nil then
             local msisdn = string.sub(line, start_i, end_i - 1)
+
+            msisdns[msisdn] = "E"
 
             redis_client:del(msisdn)
         end
@@ -249,6 +436,8 @@ local function delete_msisdn_file(req_body)
         core.log.warn("failed to commit to pipeline: ", err)
         return 500, {msg="Delete msisdns from redis failed"}
     end
+
+    local result = delete_msisdn_from_backup_file(msisdns)
 
     local ok, err = redis_client:close()
 
