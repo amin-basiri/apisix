@@ -19,6 +19,7 @@ services:
     volumes:
       - ./apisix-conf.yaml:/usr/local/apisix/conf/config.yaml
       - ./plugins:/usr/local/apisix/plugins/apisix/plugins
+      - ./extra_lua_packages:/usr/local/apisix/plugins/
     depends_on:
       - etcd
     ports:

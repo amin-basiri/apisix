@@ -1,6 +1,7 @@
 local core = require("apisix.core")
 local plugin = require("apisix.plugin")
 local ngx = ngx
+local s3_client = require "resty.aws_s3.client"
 local cjson = require("cjson.safe")
 local redis = require "resty.redis"
 
@@ -23,9 +24,45 @@ local _M = {
 local redis_host = "redis"
 local redis_port = 6379
 
+local s3_bucket = "esb"
+local s3_domain = "local-s3.mtnirancell.ir"
+local s3_access_key = "OvWo9DV3FGw0QoAUJf3S"
+local s3_secret_key = "pDmBE8CqZ8Z3LTxXkI8CnWzfcLZnPc4FSuE5psah"
+
 
 function _M.check_schema(conf)
     return core.schema.check(schema, conf)
+end
+
+
+local function add_to_s3(msisdns)
+    
+    local client, err, msg = s3_client.new(s3_access_key, s3_secret_key, s3_domain)
+
+    local resp, err, msg = client:put_object(
+        {
+            Bucket=s3_bucket,
+            Key='backup',
+            -- ACL='pub',
+            -- ContentType='image/jpg',
+            -- Metadata={
+            --     foo1='bar1',
+            --     foo2='bar2',
+            -- },
+            Body=cjson.encode(msisdns),  -- or use file name
+            -- Body={file_path='path/to/my/file'}
+        }
+    )
+
+    -- local resp, err, msg = client:get_object({Bucket=s3_bucket, Key='backup'})
+    -- local file_content, err, msg = resp.Body.read(1024 * 1024)
+    -- core.log.warn(('file content is: ' .. file_content))
+    
+    -- core.log.warn(msg)
+    -- core.log.warn(err)
+    -- core.log.warn(resp)
+
+    return true
 end
 
 
@@ -123,7 +160,195 @@ local function delete_msisdn_from_backup_file(msisdns)
 end
 
 
+local function update_backup_file_failed(msisdns)
+
+    -- Add new file
+    if not file_exists(backup_file_name) then
+        add_backup_file(msisdns)
+        return true
+    end
+
+    -- Set file content
+    local lines = ""
+    local backup_file = io.open(backup_file_name, 'r')
+
+    if not backup_file then
+        core.log.error("Where is the backup file?")
+        return false
+    end
+
+    for line in backup_file:lines() do
+
+        local start_i, start_j = string.find(line, "9")
+        local end_i, end_j = string.find(line, ",")
+
+        local msisdn
+        local state
+
+        if end_i ~= nil and start_i ~= nil then
+            state = string.sub(line, end_i + 1)
+            state = state:gsub("%s+", "")
+            state = string.gsub(state, "%s+", "")
+
+            msisdn = string.sub(line, start_i, end_i - 1)
+        end
+
+        local updated_state = msisdns[msisdn]
+        
+        msisdns[msisdn] = nil
+
+        if not updated_state then
+            updated_state = state
+        end
+
+        lines = lines .. msisdn .. "," .. updated_state .. '\n'
+    end
+
+    for k, v in pairs(msisdns) do
+        lines = lines .. k .. "," .. v .. '\n'
+    end
+
+    io.close(backup_file)
+
+    backup_file = io.open(backup_file_name, 'w')
+    backup_file:write(lines)
+    io.close(backup_file)
+
+    return true
+
+end
+
+
 local function update_backup_file(msisdns)
+    if add_to_s3(msisdns) then
+        return
+    end
+
+    -- Add new file
+    if not file_exists(backup_file_name) then
+        add_backup_file(msisdns)
+        return true
+    end
+
+    -- Set file content
+    local backup_file = io.open(backup_file_name, 'r')
+    -- local backup_file_content = {}
+
+    if not backup_file then
+        core.log.error("Where is the backup file?")
+        return false
+    end
+
+    for line in backup_file:lines() do
+        local start_i, start_j = string.find(line, "9")
+        local end_i, end_j = string.find(line, ",")
+
+        local msisdn
+        local state
+
+        if end_i ~= nil and start_i ~= nil then
+            state = string.sub(line, end_i + 1)
+            state = state:gsub("%s+", "")
+            state = string.gsub(state, "%s+", "")
+
+            msisdn = string.sub(line, start_i, end_i - 1)
+        end
+
+        if msisdns[msisdn] == nil then
+            msisdns[msisdn] = state
+        end
+
+    end
+    io.close(backup_file)
+
+
+    -- Set msisdns
+    -- for k, v in pairs(msisdns) do
+    --     backup_file_content[k] = v
+    -- end
+
+    -- Update file
+    backup_file = io.open(backup_file_name, 'w')
+
+    if not backup_file then
+        core.log.error("Where is the backup file?")
+        return false
+    end
+
+    for k, v in pairs(msisdns) do
+        backup_file:write(k..","..v..'\n')
+    end
+    io.close(backup_file)
+
+    return true
+
+end
+
+
+local function update_backup_file_old_2(msisdns)
+
+    -- Add new file
+    if not file_exists(backup_file_name) then
+        add_backup_file(msisdns)
+        return true
+    end
+
+    -- Set file content
+    local backup_file = io.open(backup_file_name, 'r')
+    -- local backup_file_content = {}
+
+    if not backup_file then
+        core.log.error("Where is the backup file?")
+        return false
+    end
+
+    for line in backup_file:lines() do
+        local start_i, start_j = string.find(line, "9")
+        local end_i, end_j = string.find(line, ",")
+
+        local msisdn
+        local state
+
+        if end_i ~= nil and start_i ~= nil then
+            state = string.sub(line, end_i + 1)
+            state = state:gsub("%s+", "")
+            state = string.gsub(state, "%s+", "")
+
+            msisdn = string.sub(line, start_i, end_i - 1)
+        end
+
+        if msisdns[msisdn] == nil then
+            msisdns[msisdn] = state
+        end
+
+    end
+    io.close(backup_file)
+
+
+    -- Set msisdns
+    -- for k, v in pairs(msisdns) do
+    --     backup_file_content[k] = v
+    -- end
+
+    -- Update file
+    backup_file = io.open(backup_file_name, 'w')
+
+    if not backup_file then
+        core.log.error("Where is the backup file?")
+        return false
+    end
+
+    for k, v in pairs(msisdns) do
+        backup_file:write(k..","..v..'\n')
+    end
+    io.close(backup_file)
+
+    return true
+
+end
+
+
+local function update_backup_file_old(msisdns)
 
     -- Add new file
     if not file_exists(backup_file_name) then
