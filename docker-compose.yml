@@ -20,6 +20,7 @@ services:
       - ./apisix-conf.yaml:/usr/local/apisix/conf/config.yaml
       - ./plugins:/usr/local/apisix/plugins/apisix/plugins
       - ./extra_lua_packages:/usr/local/apisix/plugins/
+      - ./extra_lua_packages/tz.so:/usr/local/openresty/lualib/tz.so
     depends_on:
       - etcd
     ports:
