@@ -35,36 +35,6 @@ function _M.check_schema(conf)
 end
 
 
-local tz = require("tz")
--- local luatz = require("luatz")
-
-local my_balance_request_body = '<?xml version="1.0" encoding="UTF-8"?><methodCall><methodName>GeneralGet</methodName><params><param><value><struct><member><name>originHostName</name><value><string>ESB</string></value></member><member><name>originTimeStamp</name><value><dateTime.iso8601>%s</dateTime.iso8601></value></member><member><name>originTransactionID</name><value><string>%s</string></value></member><member><name>requestDedicatedAccountInformationFlag</name><value><boolean>1</boolean></value></member><member><name>requestOfferInformationFlag</name><value><boolean>1</boolean></value></member><member><name>requestAccumulatorsFlag</name><value><boolean>1</boolean></value></member><member><name>negotiatedCapabilities</name><value><array><data><value><int>32832</int></value><value><int>65536</int></value></data></array></value></member><member><name>requestSubscriberInformationFlag</name><value><boolean>1</boolean></value></member><member><name>getUsageThresholdsAndCountersFlag</name><value><boolean>1</boolean></value></member><member><name>messageCapabilityFlag</name><value><struct><member><name>accountActivationFlag</name><value><boolean>1</boolean></value></member></struct></value></member><member><name>requestedInformationFlags</name><value><struct><member><name>requestMasterAccountBalanceFlag</name><value><boolean>1</boolean></value></member></struct></value></member><member><name>originNodeType</name><value><string>EXT</string></value></member><member><name>subscriberNumber</name><value><string>%s</string></value></member><member><name>externalData1</name><value><string>3</string></value></member><member><name>externalData2</name><value><string>0</string></value></member></struct></value></param></params></methodCall>'
-
-
-local function create_my_balance_request(msisdn, referenceID)
-    -- local now = luatz.time()
-    -- local nowTimeTable = luatz.timetable.new_from_timestamp(now)
-    -- local local_tz = luatz.get_tz("Asia/Tehran")
-    -- local inputDate = nowTimeTable:strftime("%Y%m%dT%X%z")
-
-    -- local now = luatz.time()
-    -- local nowTimeTable = luatz.timetable.new_from_timestamp(now)
-    
-    -- local inputDate = nowTimeTable:strftime("%Y%m%dT%X%z")
-    -- local inputDate = luatz.tzinfo("Asia/Tehran")
-
-    local timestamp = os.time()
-    local inputDate = tz.date("%Y-%m-%dT%H:%M:%S%z", timestamp, "Asia/Tehran")
-
-    return inputDate
-    -- TODO create inputDate
-    -- inputDate = "20230909T12:28:31+0330"
-    -- return string.format(my_balance_request_body, inputDate, referenceID, msisdn)
-end
-
-
-
-
 local function add_to_s3(msisdns)
     
     local client, err, msg = s3_client.new(s3_access_key, s3_secret_key, s3_domain)
@@ -250,68 +220,67 @@ end
 
 
 local function update_backup_file(msisdns)
-    core.log.warn(ngx.ctx.api_ctx.resp_body)
-    -- if add_to_s3(msisdns) then
-    --     return
-    -- end
+    if add_to_s3(msisdns) then
+    return
+    end
 
-    -- -- Add new file
-    -- if not file_exists(backup_file_name) then
-    --     add_backup_file(msisdns)
-    --     return true
-    -- end
+    -- Add new file
+    if not file_exists(backup_file_name) then
+    add_backup_file(msisdns)
+    return true
+    end
 
-    -- -- Set file content
-    -- local backup_file = io.open(backup_file_name, 'r')
-    -- -- local backup_file_content = {}
+    -- Set file content
+    local backup_file = io.open(backup_file_name, 'r')
+    -- local backup_file_content = {}
 
-    -- if not backup_file then
-    --     core.log.error("Where is the backup file?")
-    --     return false
-    -- end
+    if not backup_file then
+    core.log.error("Where is the backup file?")
+    return false
+    end
 
-    -- for line in backup_file:lines() do
-    --     local start_i, start_j = string.find(line, "9")
-    --     local end_i, end_j = string.find(line, ",")
+    for line in backup_file:lines() do
+    local start_i, start_j = string.find(line, "9")
+    local end_i, end_j = string.find(line, ",")
 
-    --     local msisdn
-    --     local state
+    local msisdn
+    local state
 
-    --     if end_i ~= nil and start_i ~= nil then
-    --         state = string.sub(line, end_i + 1)
-    --         state = state:gsub("%s+", "")
-    --         state = string.gsub(state, "%s+", "")
+    if end_i ~= nil and start_i ~= nil then
+    state = string.sub(line, end_i + 1)
+    state = state:gsub("%s+", "")
+    state = string.gsub(state, "%s+", "")
 
-    --         msisdn = string.sub(line, start_i, end_i - 1)
-    --     end
+    msisdn = string.sub(line, start_i, end_i - 1)
+    end
 
-    --     if msisdns[msisdn] == nil then
-    --         msisdns[msisdn] = state
-    --     end
+    if msisdns[msisdn] == nil then
+    msisdns[msisdn] = state
+    end
 
-    -- end
-    -- io.close(backup_file)
+    end
+    io.close(backup_file)
 
 
-    -- -- Set msisdns
-    -- -- for k, v in pairs(msisdns) do
-    -- --     backup_file_content[k] = v
-    -- -- end
-
-    -- -- Update file
-    -- backup_file = io.open(backup_file_name, 'w')
-
-    -- if not backup_file then
-    --     core.log.error("Where is the backup file?")
-    --     return false
-    -- end
-
+    -- Set msisdns
     -- for k, v in pairs(msisdns) do
-    --     backup_file:write(k..","..v..'\n')
+    --     backup_file_content[k] = v
     -- end
-    -- io.close(backup_file)
 
-    -- return true
+    -- Update file
+    backup_file = io.open(backup_file_name, 'w')
+
+    if not backup_file then
+    core.log.error("Where is the backup file?")
+    return false
+    end
+
+    for k, v in pairs(msisdns) do
+    backup_file:write(k..","..v..'\n')
+    end
+    io.close(backup_file)
+
+    return true
 
 end
 
@@ -885,9 +854,7 @@ function _M.access(conf, ctx)
         if req_method == "POST" then
             return add_msisdn(req_body)
         elseif req_method == "GET" then
-            local result = create_my_balance_request()
-            return 200, {msg=result}
-            -- return get_msisdn(query_string)
+            return get_msisdn(query_string)
         elseif req_method == "DELETE" then
             return delete_msisdn(query_string)
         elseif req_method == "PUT" then
