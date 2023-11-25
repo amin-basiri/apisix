@@ -3139,6 +3139,54 @@
         }
     },
     "plugins": {
+        "generic-upstream": {
+            "priority": 0,
+            "schema": {
+                "properties": {
+                    "_meta": {
+                        "properties": {
+                            "disable": {
+                                "type": "boolean"
+                            },
+                            "error_response": {
+                                "oneOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "object"
+                                    }
+                                ]
+                            },
+                            "filter": {
+                                "description": "filter determines whether the plugin needs to be executed at runtime",
+                                "type": "array"
+                            },
+                            "priority": {
+                                "description": "priority of plugins by customized order",
+                                "type": "integer"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "items": {
+                        "properties": {
+                            "upstreams": {
+                                "properties": {
+                                    "upstream_id": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "version": 0.1
+        },
         "manage-redis-numbers": {
 			"priority": 0,
 			"schema": {},

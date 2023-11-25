@@ -65,6 +65,8 @@ authentication:
       password: user
 
 plugins:
+  - generic-upstream
+  - elasticsearch-logger
   - manage-redis-numbers
   - delete-from-redis
   - delete-from-redis-batch

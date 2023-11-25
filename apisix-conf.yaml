@@ -52,6 +52,9 @@ nginx_config:
   error_log: logs/error.log       
   error_log_level:  warn
 
+  api_ctx:
+    test_ct: "salam"
+
 
   http:
     enable_access_log: true
@@ -62,6 +65,8 @@ nginx_config:
 
 
 plugins:
+  - generic-upstream
+  - elasticsearch-logger
   - manage-redis-numbers
   - delete-from-redis
   - delete-from-redis-batch
